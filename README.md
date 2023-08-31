@@ -1,1 +1,0 @@
-# JurajNedelka.github.io
