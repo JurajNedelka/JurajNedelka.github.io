@@ -32,10 +32,38 @@
     </Section>
     
 <div>
-    <button class="kidszoneButton01"></button>
+    <button class="kidszoneButton01" style="color: white;">KIDS ZONE</button>
+    <button class="PortfolioButton01" style="color: white;">PORTFOLIO</button>
+    <button class="RiftRunnersButton01" style="color: white;">UNANNOUNCED PROJECT</button>
+    
 </div>
 
     <style>
+                body {
+  background-color: white;
+}
+
+@media only screen and (max-width: 1300px) {
+  body {
+    background-color: black;
+    color: white;
+
+    .ArtStationLink01 {
+        background-color: black;
+        background-image: url(ArtStationLogoDarkMode.png);
+    }
+
+    .InstagramLink01 {
+        background-color: black;
+        background-image: url(InstagramLogoDarkMode.png);
+    }
+
+    .YoutubeLink01 {
+        background-color: black;
+        background-image: url(YoutubeLogoDarkMode.png);
+    }
+  }
+}
         .titlename {
             position: relative;
             font-size: 60px;
@@ -103,22 +131,110 @@
         }
 
         .kidszoneButton01 {
-            background-color: aqua;
-            width: 400px;
+            background-color: black;
+            width: 410px;
             height: 80px;
             border: 0px;
-            border-radius: 25px;
+            border-radius: 10px;
+            transform: translateX(60%);
+            position: absolute;
+            left: 50%;
+            top: 560px;
+            background-repeat: no-repeat;
+            cursor: pointer;
+            background-size: 500px 350px;
+            background-position: center;
+            text-align: center;
+            font-family: 'Audiowide', cursive;
+            font-size: 40px;
+            transition: 0.3s;
+            
+        }
+
+        .kidszoneButton01:hover {
+            background-color:red;
+            color: white;
+            margin: -5px 0px;
+        }
+
+        .kidszoneButton01:active {
+            margin: 5px 0px;
+            background-color: rgb(0, 30, 255);
+        }
+
+        .PortfolioButton01 {
+            background-color: aqua;
+            width: 410px;
+            height: 80px;
+            border: 0px;
+            border-radius: 10px;
             transform: translateX(-50%);
             position: absolute;
             left: 50%;
             top: 560px;
+            background-color: black;
+            background-repeat: no-repeat;
+            cursor: pointer;
+            background-position: center;
+            text-align: center;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 35px;
+            transition: 500ms;
+            cursor: pointer;
+            transition: 0.3s;
+            cursor: pointer;
+            
+        }
+
+        .PortfolioButton01:hover {
+            background-size: 500px 350px;
+            color: white;
+            margin: -5px 0px;
+            background-color:rgb(0, 145, 255);
+        }
+
+        .PortfolioButton01:active {
+            margin: 5px 0px;
+            background-color: rgb(183, 0, 255);
+        }
+        
+        .RiftRunnersButton01 {
+            background-color: black;
+            width: 410px;
+            height: 80px;
+            border: 0px;
+            border-radius: 10px;
+            transform: translateX(-160%);
+            position: absolute;
+            left: 50%;
+            top: 560px;
+            background-image: url(VSPBackground.png);
+            background-repeat: no-repeat;
+            cursor: pointer;
+            background-size: 500px 350px;
+            background-position: center;
+            text-align: center;
+            text-shadow: 0px 0px skyblue;
+            font-family: 'Space Mono', monospace;
+            font-size: 30px;
+            transition: 0.3s;
+            
+        }
+
+        .RiftRunnersButton01:hover {
+            background-size: 500px 350px;
+            color: rgb(0, 116, 184);
+            margin: -5px 0px;
+            background-color:rgb(38, 33, 107); 
+        
         }
 
     </style>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@1,700&family=DotGothic16&family=Press+Start+2P&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Audiowide&family=DotGothic16&family=Press+Start+2P&family=Space+Mono:ital,wght@1,700&display=swap" rel="stylesheet">
+
 
 <meta name="author" content="Juraj Nedeľka">
 <meta name="description" content="Portfolio Webpage. Creator of Kids Zone Series">
