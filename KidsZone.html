@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    
+    <meta name="author" content="KIDS ZONE">
+    <meta name="description" content="Horror series made by Juraj Nedeľka">
+    <meta name="keywords" content="Kids Zone, Juraj Nedeľka, Juraj Nedelka, Tech Friends, Redstone37Gamer">
 </head>
 <body>
     <body>
@@ -22,22 +27,43 @@
         background-color: black;
        }
 
+       @media only screen and (max-width: 460px) {
+      body {
+        .KidsZoneTeaser {
+          height: 150px;
+          width: 270px;
+          transform: translateX(-74%);
+          background-size: cover;
+        }
+
+        .TechFriendsButton01 {
+          transform: translateX(0%);
+          height: 100px;
+          width: 50px;
+          top: 100px;
+        }
+
+
+      }}
+
       .KidsZoneTeaser {
         background-image: url(DetskaZonaTeaser.png);
         height: 648px;
-        width: 1546px;
+        width: 1540px;
         top: 50px;
         transform: translateX(-50%);
         position: absolute;
         background-position: center;
         background-size: contain;
-        background-repeat: no-repeat;
         cursor: pointer;
         border-radius: 15px;
         border: 0px;
         transition: 0.3s;
         cursor: pointer;
         left: 50%;
+        border: 5px red;
+        border-radius: 15px;
+        border-style: solid;
       }
 
       .KidsZoneTeaser:hover {
@@ -82,7 +108,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-
 
 </body>
 </html>
