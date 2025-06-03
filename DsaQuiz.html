@@ -1,0 +1,2091 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kvízová Aplikácia s Rebríčkom (Cookies)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .option-button { transition: background-color 0.3s ease, transform 0.1s ease; }
+        .option-button:hover:not(:disabled) { background-color: #374151; }
+        .option-button.selected { background-color: #2563eb; color: white; }
+        .option-button.correct { background-color: #16a34a; color: white; }
+        .option-button.incorrect { background-color: #dc2626; color: white; }
+        .disabled-options .option-button:not(.selected):not(.correct) { opacity: 0.7; pointer-events: none; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        .timer-input::-webkit-outer-spin-button, .timer-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .timer-input[type=number] { -moz-appearance: textfield; }
+        .section-title { border-bottom: 2px solid #334155; padding-bottom: 0.5rem; }
+        .leaderboard-table th, .leaderboard-table td { padding: 0.5rem 0.75rem; border: 1px solid #4b5563; text-align: left; }
+        .leaderboard-table th { background-color: #334155; }
+        .loading-spinner { border: 4px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 4px solid #fff; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .difficulty-button.active {
+            background-color: #2563eb; /* blue-600 */
+            color: white;
+        }
+        .action-button { 
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem; 
+            transition: background-color 0.2s ease-in-out;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500; 
+        }
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: #1f2937; /* bg-slate-800 */
+            padding: 2rem;
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            width: 90%;
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4 selection:bg-sky-500 selection:text-white">
+
+    <div id="app-container" class="bg-slate-800 p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-5xl"> 
+
+        <div id="topic-selection-screen">
+            <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+                <h1 class="text-3xl sm:text-4xl font-bold text-sky-400">Vyber si Test</h1>
+                <div class="flex flex-wrap space-x-2">
+                    <button id="change-player-name-button" class="action-button bg-green-600 hover:bg-green-700 text-white">Zmeniť meno</button>
+                    <a href="#" id="discord-link" target="_blank" class="action-button bg-indigo-600 hover:bg-indigo-700 text-white">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.29,3.04C18.88,2.09,17.2,1.4,15.39,1C15.24,1.32,15.07,1.64,14.9,1.98C13.04,1.63,11.1,1.53,9.24,1.93C9.06,1.62,8.89,1.3,8.73,1C6.92,1.4,5.23,2.09,3.83,3.04C1.2,6.86,0.65,10.76,1.34,14.5C1.34,14.5,1.34,14.5,1.34,14.5C2.87,17.94,6.44,20.17,9.95,20.29C10.1,20.62,10.27,20.94,10.45,21.26C11.57,21.58,12.73,21.68,13.9,21.26C14.08,20.95,14.25,20.63,14.4,20.3C17.91,20.17,21.48,17.94,23,14.5C23,14.5,23,14.5,23,14.5C23.62,10.77,23.08,6.86,20.29,3.04ZM8.03,14.05C7.05,14.05,6.25,13.18,6.25,12.11C6.25,11.04,7.04,10.17,8.03,10.17C9.01,10.17,9.81,11.04,9.8,12.11C9.8,13.18,9.01,14.05,8.03,14.05ZM12.05,14.05C11.07,14.05,10.27,13.18,10.27,12.11C10.27,11.04,11.06,10.17,12.05,10.17C13.03,10.17,13.83,11.04,13.82,12.11C13.82,13.18,13.03,14.05,12.05,14.05Z"/></svg>
+                        Discord
+                    </a>
+                    <a href="#" id="gdrive-link" target="_blank" class="action-button bg-yellow-500 hover:bg-yellow-600 text-white">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.009,8.636l-4.455-4.345C14.227,3.964,13.809,3.755,13.364,3.755H6.845c-0.891,0-1.618,0.727-1.618,1.618v13.273c0,0.891,0.727,1.618,1.618,1.618h10.309c0.891,0,1.618-0.727,1.618-1.618V9.364C19.227,8.991,19.145,8.764,19.009,8.636z M13.364,5.082l3.145,3.055h-3.145V5.082z M17.155,18.636H6.845V5.373h5.409v3.982h4.291v9.282H17.155z"/><path d="M8.155 11.218H15.845V12.845H8.155zM8.155 13.645H15.845V15.273H8.155zM8.155 16.073H12.945V17.7H8.155z"/></svg>
+                        Google Drive
+                    </a>
+                    <button id="show-leaderboard-button" class="action-button bg-purple-600 hover:bg-purple-700 text-white">Rebríček</button>
+                </div>
+            </div>
+            <p id="player-name-display" class="text-md text-slate-300 mt-2 mb-4 text-center">Hráč: <span id="current-player-name-span" class="font-semibold">Načítavam...</span></p>
+            <div class="mb-6 p-4 bg-slate-700 rounded-lg space-y-4">
+                <div>
+                    <label for="timer-minutes" class="block text-lg mb-2 text-slate-300">Časový limit (minúty):</label>
+                    <div class="flex items-center gap-4">
+                        <input type="number" id="timer-minutes" min="1" value="10" class="timer-input bg-slate-600 text-slate-100 p-2 rounded-lg w-1/2 focus:ring-2 focus:ring-sky-500 outline-none">
+                        <button id="no-timer-button" class="bg-slate-500 hover:bg-slate-400 text-slate-100 py-2 px-4 rounded-lg transition-colors w-1/2">Bez limitu</button>
+                    </div>
+                    <p id="timer-info" class="text-sm text-slate-400 mt-2">Zadajte počet minút alebo vyberte "Bez limitu".</p>
+                </div>
+                <div>
+                    <label class="block text-lg mb-2 text-slate-300">Obtiažnosť:</label>
+                    <div class="flex items-center gap-4">
+                        <button id="difficulty-easy" data-difficulty="easy" class="difficulty-button bg-slate-600 hover:bg-slate-500 text-white py-2 px-4 rounded-lg transition-colors w-1/2 active">Ľahká</button>
+                        <button id="difficulty-hard" data-difficulty="hard" class="difficulty-button bg-slate-600 hover:bg-slate-500 text-white py-2 px-4 rounded-lg transition-colors w-1/2">Ťažká</button>
+                    </div>
+                </div>
+            </div>
+            <div id="sections-container" class="space-y-8"></div>
+        </div>
+
+        <div id="quiz-screen" class="hidden">
+             <div class="flex justify-between items-center mb-4">
+                <h2 id="quiz-topic-title" class="text-2xl sm:text-3xl font-bold text-sky-400">Názov Testu</h2>
+                <button id="back-to-topics" class="bg-sky-600 hover:bg-sky-700 text-white py-2 px-3 rounded-lg transition-colors text-sm sm:text-base">Zmeniť Test</button>
+            </div>
+            <div id="timer-display" class="text-xl sm:text-2xl font-semibold text-amber-400 mb-4 text-center">
+                Zostávajúci čas: <span id="time-left">--:--</span>
+            </div>
+            <div id="question-container" class="mb-6 p-6 bg-slate-700 rounded-lg">
+                <p id="question-text" class="text-lg sm:text-xl mb-4 min-h-[60px]"></p>
+                <div id="options-container" class="space-y-3">
+                </div>
+                <input type="text" id="hard-mode-answer-input" class="hidden mt-4 bg-slate-600 text-slate-100 p-2 rounded-lg w-full focus:ring-2 focus:ring-sky-500 outline-none" placeholder="Napíš svoju odpoveď...">
+            </div>
+            <div id="feedback-container" class="mb-4 min-h-[30px] text-center text-lg">
+                <p id="feedback-text"></p>
+            </div>
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <p id="score-text" class="text-xl font-semibold">Skóre: 0/0</p>
+                <p id="question-counter-text" class="text-md text-slate-400">Otázka: 1/10</p>
+                <button id="submit-answer-button" class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg w-full sm:w-auto transition-colors">Potvrdiť Odpoveď</button>
+            </div>
+        </div>
+
+        <div id="results-screen" class="hidden text-center">
+            <h2 class="text-3xl sm:text-4xl font-bold text-sky-400 mb-6">Výsledky Testu</h2>
+            <p id="final-score-text" class="text-2xl mb-2"></p>
+            <p id="probable-grade-time-text" class="text-xl mb-2">Pravdepodobná známka (s časom): <span id="probable-grade-time-value" class="font-bold">--</span></p>
+            <p id="result-message-text" class="text-lg mb-4"></p>
+            <p id="quiz-duration-text" class="text-md text-slate-400 mb-6">Trvanie testu: <span id="quiz-duration-value">--:--</span></p>
+            <div class="mb-6 p-4 bg-slate-700 rounded-lg max-w-md mx-auto">
+                <p class="text-lg mb-2 text-slate-300">Uložiť do rebríčka ako: <span id="player-name-for-leaderboard" class="font-bold"></span></p>
+                <button id="save-to-leaderboard-button" class="bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-lg w-full transition-colors">Uložiť do Rebríčka</button>
+                <p id="save-status-message" class="text-sm text-slate-400 mt-2 min-h-[20px]"></p>
+            </div>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <button id="restart-quiz-button" class="bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg transition-colors">Zopakovať Test</button>
+                <button id="change-topic-button" class="bg-sky-600 hover:bg-sky-700 text-white py-3 px-6 rounded-lg transition-colors">Vybrať Iný Test</button>
+            </div>
+        </div>
+
+        <div id="leaderboard-screen" class="hidden">
+            <h1 class="text-3xl sm:text-4xl font-bold text-center mb-6 text-purple-400">Rebríček Najlepších</h1>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                    <label for="leaderboard-section-filter" class="block text-sm font-medium text-slate-300 mb-1">Filtrovať podľa sekcie:</label>
+                    <select id="leaderboard-section-filter" class="bg-slate-700 border border-slate-600 text-slate-100 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 appearance-none">
+                        <option value="Global">Globálne (všetky sekcie)</option>
+                        <option value="Mechanika Elektrotechnika (testy od Hudecovej)">Mechanika Elektrotechnika</option>
+                        <option value="Slovenčina">Slovenčina</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="leaderboard-test-filter" class="block text-sm font-medium text-slate-300 mb-1">Filtrovať podľa testu:</label>
+                    <select id="leaderboard-test-filter" class="bg-slate-700 border border-slate-600 text-slate-100 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 appearance-none">
+                        <option value="All">Všetky testy (v sekcii)</option>
+                        </select>
+                </div>
+            </div>
+            <div id="leaderboard-summary" class="text-center mb-4 p-3 bg-slate-700 rounded-lg">
+                <p class="text-lg">Priemerná úspešnosť (filtrované): <span id="average-percentage-filtered" class="font-bold">--%</span></p>
+                <p class="text-lg">Priemerná známka (filtrované): <span id="average-grade-filtered" class="font-bold">--</span></p>
+            </div>
+            <div id="leaderboard-loading" class="loading-spinner my-8"></div>
+            <div class="overflow-x-auto">
+                <table id="leaderboard-table" class="w-full leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Por.</th>
+                            <th>Meno Hráča</th>
+                            <th id="leaderboard-col-test-name">Test</th> <th id="leaderboard-col-section-name">Sekcia</th> <th>Skóre</th>
+                            <th>Percentá</th>
+                            <th>Známka</th>
+                            <th>Trvanie</th>
+                            <th>Dátum</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body"></tbody>
+                </table>
+            </div>
+            <p id="leaderboard-message" class="text-center mt-4 text-slate-400"></p>
+            <button id="back-to-topics-from-leaderboard" class="mt-8 bg-sky-600 hover:bg-sky-700 text-white py-2 px-4 rounded-lg transition-colors block mx-auto">Späť na Testy</button>
+        </div>
+
+        <!-- Player Name Modal -->
+        <div id="player-name-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <h2 class="text-2xl font-bold text-sky-400 mb-4">Zadaj svoje meno</h2>
+                <p class="text-slate-300 mb-4">Tvoje meno sa bude zobrazovať v rebríčku.</p>
+                <input type="text" id="modal-player-name-input" class="bg-slate-600 text-slate-100 p-2 rounded-lg w-full focus:ring-2 focus:ring-sky-500 outline-none mb-4" placeholder="Meno hráča">
+                <button id="modal-save-name-button" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg w-full">Uložiť meno</button>
+                 <p id="modal-name-error" class="text-red-400 text-sm mt-2"></p>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        // --- Test Data (Elektrotechnika) ---
+        const testAkcneCleny = `
+Test: Akčné členy
+1. Čo je hlavnou úlohou akčného člena v regulačnom obvode?
+a) Generovať napätie
+b) Sledovať teplotu
+c) Udržiavať požadovaný stav systému
+2. Ktorý prvok zabezpečuje fyzickú reakciu v systéme na základe príkazu z riadiaceho systému?
+a) Senzor
+b) Aktuátor
+c) Algoritmus
+3. Aký typ regulátora využíva proporčný, integračný a derivatívny člen?
+a) On-Off regulátor
+b) PID regulátor
+c) Adaptívny regulátor
+4. Ktorý typ pohonu je najvhodnejší pre ťažké priemyselné aplikácie s veľkým výkonom?
+a) Pneumatický
+b) Elektrický
+c) Hydraulický
+5. Ktorý typ pohonu má výhodu v rýchlom a jednoduchom ovládaní, ale vytvára hluk pri odfuku?
+a) Pneumatický
+b) Hydraulický
+c) Mechanický
+6. Čo je výhodou elektromechanického pohonu?
+a) Nízka hmotnosť
+b) Presnosť elektrických pohonov s mechanickou odolnosťou
+c) Vysoká hlučnosť
+7. Ktorý typ servopohonu je vhodnejší pre manipuláciu s veľkými zaťaženiami pomocou zosilnenia síl?
+a) Priamočiary
+b) Pákový
+c) Elektromagnetický
+8. Aké médium využívajú pneumatické pohony?
+a) Elektrický prúd
+b) Hydraulický olej
+c) Stlačený vzduch
+9. Čo predstavuje spätná väzba v regulačnom obvode?
+a) Príkazový vstup
+b) Výstupný signál
+c) Informácia o aktuálnom stave systému
+10. Ktorý regulátor reaguje len prepnutím medzi dvomi stavmi?
+a) PID regulátor
+b) On-Off regulátor
+c) Derivátor
+Správne odpovede:
+1. c)
+2. b)
+3. b)
+4. c)
+5. a)
+6. b)
+7. b)
+8. c)
+9. c)
+10. b)
+        `;
+        const testPLC15Otazok = `
+Test: Programovateľné logické automaty (PLC)
+1. Čo je hlavnou úlohou PLC?
+a) Meranie elektrického prúdu
+b) Riadenie logických funkcií v automatizácii
+c) Tvorba elektrickej energie
+2. Ktoré z týchto zariadení PLC nahrádza?
+a) Kondenzátory
+b) Reléové systémy
+c) Solárne panely
+3. Aká je hlavná funkcia CPU v PLC?
+a) Ukladá výstupné signály
+b) Spracováva údaje a riadi operácie
+c) Napája PLC
+4. Čo sú vstupy v PLC systéme?
+a) Motory a relé
+b) Signály z tlačidiel a snímačov
+c) Pamäťové moduly
+5. Na čo slúžia výstupy v PLC?
+a) Na zobrazovanie dát
+b) Na ovládanie zariadení ako motory a svetlá
+c) Na spracovanie logiky
+6. Ktorý jazyk je grafickým jazykom pripomínajúcim elektrické schémy?
+a) ST
+b) LD
+c) IL
+7. Čo znamená skratka PLC?
+a) Programmable Logic Controller
+b) Power Logic Converter
+c) Process Load Capacitor
+8. Aký typ PLC má všetky komponenty v jednom zariadení?
+a) Kompaktné PLC
+b) Rackové PLC
+c) Modulárne PLC
+9. Ktorý typ PLC sa používa v rozsiahlych systémoch ako rafinérie?
+a) Softwarové PLC
+b) Rackové PLC
+c) Mikro PLC
+10. Aká je výhoda softwarového PLC?
+a) Vyžaduje menej pamäte
+b) Beží na štandardnom počítači
+c) Má integrované výstupy
+11. Ktorý jazyk je textový a podobný Pascalu?
+a) FBD
+b) IL
+c) ST
+12. Ako prebieha základný cyklus PLC?
+a) Ukladanie dát, aktualizácia, diagnostika
+b) Kontrola vstupov, spracovanie programu, aktualizácia výstupov
+c) Spracovanie výstupov, kontrola pamäte, filtrovanie
+13. Na čo slúžia komunikačné rozhrania v PLC?
+a) Na programovanie CPU
+b) Na výmenu signálov medzi výstupmi
+c) Na prepojenie s HMI, SCADA alebo inými PLC
+14. Ktorý typ PLC je najvhodnejší pre jednoduché osvetľovacie systémy?
+a) Rackové PLC
+b) Mikro PLC
+c) Modulárne PLC
+15. Ktorý komunikačný protokol sa často používa v moderných PLC?
+a) HTTP
+b) FTP
+c) Modbus
+Správne odpovede:
+1. b)
+2. b)
+3. b)
+4. b)
+5. b)
+6. b)
+7. a)
+8. a)
+9. b)
+10. b)
+11. c)
+12. b)
+13. c)
+14. b)
+15. c)
+        `;
+        const testRegulatoryARiadiaceSystemy = `
+Test: Regulátory a riadiace systémy
+1. Čo je hlavnou úlohou regulátora v regulačnom obvode?
+a) Meria teplotu
+b) Porovnáva a generuje riadiaci signál
+c) Vytvára spätnoväzbový signál
+2. Ktorá veličina predstavuje žiadaný stav systému?
+a) Výstupná veličina
+b) Regulačný signál
+c) Referenčný signál
+3. Ako sa označuje regulačná odchýlka?
+a) e(t)
+b) u(t)
+c) y(t)
+4. Ktorý člen porovnáva referenčný a výstupný signál?
+a) Aktuátor
+b) Porovnávač
+c) Senzor
+5. Čo predstavuje regulačný signál?
+a) Snímaný údaj
+b) Vstup do systému
+c) Výsledný výstup
+6. Ktorý signál predstavuje aktuálny stav systému?
+a) Regulačný
+b) Spätnoväzbový
+c) Referenčný
+7. Čo spôsobuje regulačnú odchýlku?
+a) Stabilita
+b) Chyba medzi žiadanou a aktuálnou hodnotou
+c) Odozva
+8. Aká je funkcia PID regulátora?
+a) Stabilizuje napätie
+b) Meria tlak
+c) Minimalizuje regulačnú odchýlku
+9. Čo znamená stav, keď sa regulovaná veličina nemení?
+a) Porucha
+b) Dynamický stav
+c) Ustálený stav
+10. Ktorý regulátor pracuje s akumulovanou chybou?
+a) P-regulátor
+b) I-regulátor
+c) D-regulátor
+11. Ktorý typ regulácie pracuje s predikciou správania systému?
+a) Fuzzy regulátor
+b) MPC
+c) PID
+12. Čo je charakteristické pre priamy regulátor?
+a) Neovplyvňuje priamo vstup
+b) Reaguje len na výstup
+c) Pôsobí priamo na vstupný signál
+13. Čo je typické pre nespojitú reguláciu?
+a) Priebežné hodnoty
+b) Diskrétne signály
+c) Spojitý tok údajov
+14. Aký typ regulátora reaguje na rýchlosť zmeny chyby?
+a) D-regulátor
+b) I-regulátor
+c) PID regulátor
+15. Ktorý regulátor je vhodný pre systémy s meniacimi sa parametrami?
+a) On-Off
+b) Adaptívny
+c) P-regulátor
+16. Čo znamená výstupný signál v regulačnom obvode?
+a) Riadi vstup
+b) Indikuje odchýlku
+c) Reprezentuje aktuálny stav
+17. Ktorý typ regulátora využíva logické pravidlá?
+a) PID
+b) Fuzzy
+c) MPC
+18. Čo zabezpečuje spätnoväzbový signál?
+a) Vstup systému
+b) Ovládanie senzora
+c) Informáciu o výstupe pre porovnanie
+19. Čo znamená priamy zásah regulátora do systému?
+a) Neovplyvňuje výstup
+b) Vstup je generovaný na základe chyby
+c) Je nezávislý od výstupu
+20. Aký typ signálu má spojitá regulácia?
+a) Digitálny
+b) Pulzný
+c) Spojitý
+Správne odpovede:
+1. b)
+2. c)
+3. a)
+4. b)
+5. b)
+6. b)
+7. b)
+8. c)
+9. c)
+10. b)
+11. b)
+12. c)
+13. b)
+14. a)
+15. b)
+16. c)
+17. b)
+18. c)
+19. b)
+20. c)
+        `;
+        const testRiadenieRegulaciaSnimace20 = `
+Test: Riadenie a regulácia, snímače a informácie
+1. Čo je úlohou snímača v regulačnom obvode?
+a) Generovať výstupný signál
+b) Meria aktuálny stav systému
+c) Ovláda aktuátor
+2. Ktorý člen porovnáva aktuálnu a referenčnú hodnotu?
+a) Senzor
+b) Akčný člen
+c) Regulátor
+3. Čo je referenčná hodnota v regulačnom obvode?
+a) Skutočný výstup systému
+b) Požadovaná hodnota systému
+c) Vstupný signál senzora
+4. Aká je hlavná úloha spätnoväzbového obvodu?
+a) Generovať výstup
+b) Meria oneskorenie
+c) Získať informáciu o stave systému
+5. Čo vyjadruje prenosová funkcia?
+a) Vzťah medzi vstupom a výstupom v časovej oblasti
+b) Vzťah medzi vstupom a výstupom vo frekvenčnej oblasti
+c) Napäťový rozdiel
+6. Ktorý člen v PID regulátore predvída budúce odchýlky?
+a) Proporcionálny
+b) Derivačný
+c) Integračný
+7. Čo vyjadruje časová odozva systému?
+a) Zmenu frekvencie
+b) Odozvu systému na skokový alebo impulzný vstup
+c) Stav výstupu
+8. Aký je hlavný cieľ identifikácie sústavy?
+a) Odstrániť poruchu
+b) Vytvoriť presný matematický model
+c) Nahradiť regulátor
+9. Ktorý snímač využíva termoelektrický jav?
+a) Termistor
+b) Termočlánok
+c) RTD
+10. Ktoré z nasledujúcich sú odporové snímače teploty?
+a) RTD a termistor
+b) Termočlánok a infračervený senzor
+c) Piezoelektrický a optický senzor
+11. Čo je výhodou MEMS senzorov?
+a) Sú lacné, ale veľké
+b) Veľké rozmery
+c) Malé, integrované a vhodné pre moderné zariadenia
+12. Ktorý typ snímača je vhodný na bezkontaktné meranie teploty?
+a) Termistor
+b) Infračervený snímač
+c) RTD
+13. Čo meria Hallov snímač?
+a) Zvuk
+b) Tlak
+c) Magnetické pole
+14. Ktorý snímač otáčok využíva svetelné impulzy?
+a) Magnetický
+b) Akustický
+c) Optický
+15. Čo zabezpečuje prevodník A/D?
+a) Prevod digitálneho na analógový signál
+b) Prevod analógového signálu na digitálny
+c) Zosilnenie signálu
+16. Ktorý komunikačný protokol je vhodný pre IoT aplikácie?
+a) Profinet
+b) Modbus
+c) MQTT
+17. Ktoré vlastnosti sú dôležité pri výbere snímača?
+a) Cena a veľkosť
+b) Presnosť, spoľahlivosť, rýchlosť odozvy
+c) Farba a materiál
+18. Ktorý typ regulácie predikuje budúci stav systému?
+a) PID
+b) Adaptívna
+c) Model Predictive Control (MPC)
+19. Ktorý snímač je založený na zmene odporu vplyvom tlaku?
+a) Piezoelektrický
+b) Kapacitný
+c) Odporový
+20. Aký je princíp paralelného spojenia blokov v blokovej algebre?
+a) Sčítanie prenosových funkcií
+b) Odčítanie prúdov
+c) Násobenie výstupov
+Správne odpovede:
+1. b)
+2. c)
+3. b)
+4. c)
+5. b)
+6. b)
+7. b)
+8. b)
+9. b)
+10. a)
+11. c)
+12. b)
+13. c)
+14. c)
+15. b)
+16. c)
+17. b)
+18. c)
+19. c)
+20. a)
+        `;
+        const testRiadenieVykonu = `
+Test: Riadenie výkonu a výkonové polovodiče
+1. Čo je hlavnou funkciou tyristora?
+a) Generuje signály
+b) Riadi napätie v jednosmerných obvodoch
+c) Prepína medzi otvoreným a uzavretým stavom
+2. Ako sa líši triak od tyristora?
+a) Môže viesť prúd v oboch smeroch
+b) Je menší
+c) Nepotrebuje riadiaci signál
+3. Kedy sa diak prepne do vodivého stavu?
+a) Pri poklese prúdu
+b) Pri prekročení prahového napätia
+c) Po zapnutí prepínača
+4. Čo robí riadiaci uhol tyristora?
+a) Zvýši napätie
+b) Určuje čas zapnutia tyristora v cykle
+c) Ovláda teplotu
+5. Čo je typické pre PWM usmerňovače?
+a) Používajú mechanické spínače
+b) Riadenie šírky impulzov
+c) Nemajú riadenie
+6. Aká je výhoda fázovo riadených usmerňovačov?
+a) Regulácia fázy bez straty výkonu
+b) Menšia spotreba energie
+c) Vedenie prúdu len jedným smerom
+7. Na čo slúži dvojimpulzový mostíkový usmerňovač?
+a) Na zmenu frekvencie
+b) Na jednoduché riadenie výkonu
+c) Na stabilizáciu teploty
+8. Ktorý z prvkov umožňuje prepínanie obojsmerného prúdu?
+a) Tyristor
+b) Triak
+c) Diak
+9. Ktoré zariadenie má najjednoduchšiu štruktúru?
+a) Tyristor
+b) Triak
+c) Diak
+10. Aký je hlavný účel riadeného usmerňovača?
+a) Ukladanie energie
+b) Riadenie výstupného prúdu alebo napätia
+c) Meranie prúdu
+Správne odpovede
+1. c)
+2. a)
+3. b)
+4. b)
+5. b)
+6. a)
+7. b)
+8. b)
+9. c)
+10. b)
+        `;
+        const testStatickeADynamickeVlastnostiRO = `
+Test: Statické a dynamické vlastnosti regulačných obvodov
+1. Čo je regulačný obvod?
+a) Zariadenie na meranie tlaku
+b) Systém na automatické riadenie procesov
+c) Obvod na generovanie napätia
+2. Aký typ regulačného obvodu nevyužíva spätnú väzbu?
+a) Uzavretý
+b) Otvorený
+c) Dynamický
+3. Aký je hlavný rozdiel medzi uzavretým a otvoreným regulačným obvodom?
+a) Počet vstupov
+b) Prítomnosť alebo absencia spätnej väzby
+c) Použitie elektrického napätia
+4. Aké sú časti regulačného obvodu?
+a) Zdroj, kábel, LED
+b) Senzor, regulátor, akčný článok, spätná väzba
+c) Odpor, kondenzátor, cievka
+5. Čo je dynamická vlastnosť regulačného obvodu?
+a) Spotreba energie
+b) Odozva systému v čase
+c) Výkon transformátora
+6. Čo označuje doba ustálenia?
+a) Čas potrebný na spustenie systému
+b) Čas potrebný na dosiahnutie stabilného stavu
+c) Trvanie signálu
+7. Čo je regulačná odchýlka?
+a) Rozdiel medzi požadovanou a skutočnou hodnotou
+b) Dĺžka vedenia
+c) Prúd v obvode
+8. Čo je cieľom regulácie?
+a) Zväčšiť signál
+b) Minimalizovať regulačnú odchýlku
+c) Zvýšiť napätie
+9. Čo popisuje prenosová funkcia?
+a) Vzťah medzi dvoma obvodmi
+b) Vzťah medzi vstupom a výstupom obvodu
+c) Tepelný odpor
+10. Aký typ obvodu reaguje priebežne na zmeny?
+a) Systém s nespojitým riadením
+b) Systém so spojitým riadením
+c) Uzatvorený obvod
+11. Čo je charakteristické pre nelineárne regulačné obvody?
+a) Sú nezávislé od amplitúdy
+b) Majú rovnaké výstupy
+c) Ich vlastnosti závisia od amplitúdy signálu
+12. Ktorá vlastnosť patrí medzi statické vlastnosti regulačného obvodu?
+a) Prenosová funkcia
+b) Statická ziskovosť
+c) Doba ustálenia
+13. Čo je rušivá imunita?
+a) Zvýšenie napätia
+b) Schopnosť odolávať rušivým signálom
+c) Vstupná impedancia
+14. Ako sa hodnotí kvalita regulačného obvodu?
+a) Farbou súčiastok
+b) Dĺžkou vedenia
+c) Odozvou na zmeny, stabilitou, presnosťou
+15. Čo je stabilita regulačného obvodu?
+a) Schopnosť meniť výstup
+b) Schopnosť zotrvať alebo vrátiť sa do rovnováhy
+c) Množstvo výstupného signálu
+Správne odpovede:
+1. b)
+2. b)
+3. b)
+4. b)
+5. b)
+6. b)
+7. a)
+8. b)
+9. b)
+10. b)
+11. c)
+12. b)
+13. b)
+14. c)
+15. b)
+        `;
+        const testZosilnovace = `
+Test: Zosilňovače
+1. Ktorý typ zosilňovača zosilňuje napätie signálu?
+a) Výkonový zosilňovač
+b) Prúdový zosilňovač
+c) Napäťový zosilňovač
+2. Aká trieda zosilňovača má najvyššiu kvalitu, ale nízku účinnosť?
+a) Trieda A
+b) Trieda B
+c) Trieda C
+3. Čo je zosilnenie (zisk)?
+a) Rozdiel medzi vstupom a výstupom
+b) Súčet výstupu a vstupu
+c) Pomer výstupu k vstupu
+4. Aký druh skreslenia vzniká pri prepínaní medzi polovodičmi?
+a) Fázové
+b) Prechodové
+c) Nelineárne
+5. Čo zobrazuje amplitúdová prevodová charakteristika?
+a) Zmenu fázy signálu
+b) Závislosť výstupu od vstupu
+c) Zisk zosilňovača
+6. Čo spôsobuje záporná spätná väzba v zosilňovači?
+a) Zvýšenie zosilnenia
+b) Zvýšenie skreslenia
+c) Zlepšenie stability
+7. Čo má operačný zosilňovač (OZ)?
+a) Iba jeden vstup
+b) Dva výstupy
+c) Dva vstupy a jeden výstup
+8. Ktoré zapojenie OZ má výstup ako rozdiel medzi dvoma vstupmi?
+a) Sčítač
+b) Odčítavač
+c) Integrátor
+9. Aké zosilnenie má ideálny OZ?
+a) 0
+b) Veľmi malé
+c) Nekonečné
+10. Ako sa nazýva zapojenie OZ, kde vstup ide na záporný vstup cez rezistor a kladný vstup je uzemnený?
+a) Neinvertujúci zosilňovač
+b) Invertujúci zosilňovač
+c) Sčítač
+Správne odpovede:
+1. c)
+2. a)
+3. c)
+4. b)
+5. b)
+6. c)
+7. c)
+8. b)
+9. c)
+10. b)
+        `;
+
+        const elektrotechnikaTestContents = [
+            testAkcneCleny, testPLC15Otazok, testRegulatoryARiadiaceSystemy,
+            testRiadenieRegulaciaSnimace20, testRiadenieVykonu,
+            testStatickeADynamickeVlastnostiRO, testZosilnovace
+        ];
+
+        // --- Test Data (Slovenčina) ---
+        const testSlovnaZasobaLiteratura = `
+Test: Slovná zásoba a Staroveká literatúra
+1. Čo tvorí jadro slovnej zásoby?
+a) Odborné termíny a neologizmy
+b) Najstaršie a najčastejšie používané slová (napr. zem, voda, otec)
+c) Slangové a nárečové slová
+2. Ktorý z uvedených pojmov označuje slová s rovnakou podobou, ale odlišným významom (napr. čelo - časť hlavy, čelo - hudobný nástroj)?
+a) Synonymá
+b) Antonymá
+c) Homonymá
+3. Ktorý epos je považovaný za najstaršiu literárnu pamiatku a rozpráva príbeh kráľa mesta Uruk, Gilgameša?
+a) Ilias
+b) Epos o Gilgamešovi
+c) Antigona
+4. V Sofoklovej tragédii Antigona, kto vydal zákaz pochovať Polyneika, pretože bojoval proti Tébam?
+a) Eteokles
+b) Haimon
+c) Kreon
+Správne odpovede:
+1. b)
+2. c)
+3. b)
+4. c)
+        `;
+        const testFrazeologizmusStredovek = `
+Test: Frazeologizmus a Staroslovienska literatúra
+1. Ktorý typ frazeologizmu je krátky ľudový výrok, z ktorého vyplýva poučenie?
+a) Porekadlo
+b) Príslovie
+c) Pranostika
+2. Kto zostavil prvé slovanské písmo, hlaholiku, pred príchodom na Veľkú Moravu?
+a) Metod
+b) Rastislav
+c) Konštantín
+3. Ktoré dielo je považované za prvú slovanskú báseň, oslavuje slovanský preklad Písma a vyzdvihuje domáci jazyk?
+a) Moravsko-panónske legendy
+b) Proglas
+c) Život sv. Metoda
+4. Aký bol prvý slovanský liturgický (bohoslužobný) jazyk, ktorý Konštantín a Metod priniesli na Veľkú Moravu?
+a) Latinčina
+b) Gréčtina
+c) Staroslovienčina
+Správne odpovede:
+1. b)
+2. c)
+3. b)
+4. c)
+        `;
+        const testSyntaxHumanizmus = `
+Test: Syntax (vety) a Humanizmus a renesancia
+1. Veta "Prší." je podľa členitosti:
+a) Dvojčlenná s nevyjadreným podmetom
+b) Jednočlenná slovesná
+c) Jednočlenná neslovesná
+2. Ktoré myšlienkové hnutie kládlo do centra pozornosti človeka a jeho pozemský svet, na rozdiel od stredovekého zamerania na nadpozemský svet?
+a) Barok
+b) Klasicizmus
+c) Humanizmus a renesancia
+3. Kto je autorom slávnej tragédie "Hamlet", ktorá zobrazuje boj jednotlivca so svetom intríg a zločinu?
+a) Giovanni Boccaccio
+b) Francesco Petrarca
+c) William Shakespeare
+4. Aký typ vety je "Nech sa ti darí!" podľa obsahu (modálnosti)?
+a) Oznamovacia
+b) Rozkazovacia
+c) Želacia
+Správne odpovede:
+1. b)
+2. c)
+3. c)
+4. c)
+        `;
+        const testSuvetiaBarok = `
+Test: Súvetia, jednoduchá veta a Barok
+1. Aký typ priraďovacieho súvetia je "Mama varí, ale neje."?
+a) Zlučovacie
+b) Odporovacie
+c) Vylučovacie
+2. Ktorý z nasledujúcich znakov je typický pre barokovú literatúru?
+a) Jednoduchosť a strohosť formy
+b) Dôraz na rozum a logiku
+c) Používanie protikladov a pompéznosť
+3. Kto je autorom diela "Valaská škola, mravú stodola", ktoré obsahuje ponaučenia zo života valachov?
+a) Matej Bel
+b) Ján Simonides
+c) Hugolín Gavlovič
+4. Aký typ súvetia je "Pochopil, čo treba urobiť."?
+a) Priraďovacie zlučovacie
+b) Podraďovacie predmetové
+c) Podraďovacie podmetové
+Správne odpovede:
+1. b)
+2. c)
+3. c)
+4. b)
+        `;
+        const testProzodiaKlasicizmus = `
+Test: Prozódia a Klasicizmus
+1. Čo označuje pojem "kvantita" v prozodických vlastnostiach reči?
+a) Sila hlasu
+b) Dĺžka trvania hlások
+c) Tónové vlnenie hlasu
+2. Ktorý z uvedených princípov bol ústredným pre klasicistickú literatúru?
+a) Dôraz na cit a fantáziu
+b) Napodobňovanie antických vzorov a dôraz na rozum
+c) Odmietanie pravidiel a voľnosť tvorby
+3. Kto je autorom básnickej skladby "Slávy dcera", ktorá je významným dielom slovenského klasicizmu?
+a) Ján Hollý
+b) Ján Kollár
+c) René Descartés
+4. Akú melódiu má zvyčajne oznamovacia veta v slovenčine?
+a) Stúpavú
+b) Klesavú
+c) Nekončiacu (polokadenciu)
+Správne odpovede:
+1. b)
+2. b)
+3. b)
+4. b)
+        `;
+        const testPodstatneMenaDrama = `
+Test: Podstatné mená a Slovenská dráma do r. 1945
+1. Ktoré z nasledujúcich podstatných mien je pomnožné?
+a) ľudstvo
+b) nohavice
+c) Jano
+2. Ktorý slovenský dramatik je autorom veselohry "Kocúrkovo alebo Len aby sme v hanbe neostali"?
+a) Ján Palárik
+b) Jozef Gregor-Tajovský
+c) Ján Chalupka
+3. V hre Jozefa Gregora-Tajovského "Statky-zmätky", čo je hlavným motívom konania manželov Palčíkovcov?
+a) Láska k blížnemu
+b) Chamtivosť a túžba po majetku
+c) Snaha pomôcť mladým ľuďom
+4. Aký rod má podstatné meno "kameň"?
+a) Mužský
+b) Ženský
+c) Stredný
+Správne odpovede:
+1. b)
+2. c)
+3. b)
+4. a)
+        `;
+        const testVyvinJazykaRomantizmusSvetovy = `
+Test: Vývin slovenského jazyka a Svetový romantizmus
+1. Na základe akého nárečia kodifikoval Anton Bernolák spisovnú slovenčinu v roku 1787?
+a) Stredoslovenského nárečia
+b) Východoslovenského nárečia
+c) Kultúrnej západoslovenčiny (trnavského typu)
+2. Ktorý z uvedených autorov je predstaviteľom nemeckého romantizmu a napísal román "Utrpenie mladého Werthera"?
+a) Victor Hugo
+b) Johann Wolfgang Goethe
+c) George Gordon Byron
+3. Čo bolo charakteristickým znakom romantického hrdinu?
+a) Podriadenosť spoločenským konvenciám a rozumu
+b) Výnimočnosť, osamelosť, túžba po slobode a často tragický osud
+c) Snaha o materiálne zbohatnutie a spoločenský postup
+4. Ktoré z nasledujúcich diel NIE JE romantickou poémou A. S. Puškina?
+a) Kaukazský zajatec
+b) Cigáni
+c) Babička
+Správne odpovede:
+1. c)
+2. b)
+3. b)
+4. c)
+        `;
+        const testKomunikaciaRomantizmusSk = `
+Test: Komunikácia a Slovenský romantizmus
+1. Aký typ komunikácie prebieha, keď účastníci nie sú v tej istej chvíli na tom istom mieste (napr. cez SMS)?
+a) Priama komunikácia
+b) Nepriama komunikácia
+c) Neverbálna komunikácia
+2. Ktorý z nasledujúcich znakov je typický pre slovenský romantizmus?
+a) Odmietanie ľudovej slovesnosti ako inšpirácie
+b) Dôraz na individualizmus a osobnú slobodu autora nad národnými záujmami
+c) Čerpanie námetov z národnej histórie a idealizácia postáv
+3. Kto bol vedúcou osobnosťou štúrovskej generácie a kodifikoval spisovnú slovenčinu založenú na stredoslovenskom nárečí?
+a) Ján Kollár
+b) Samo Chalupka
+c) Ľudovít Štúr
+4. Aký princíp komunikácie zdôrazňuje potrebu prispôsobiť sa úrovni toho, s kým hovoríme?
+a) Princíp zdvorilosti
+b) Princíp irónie
+c) Princíp kooperácie
+Správne odpovede:
+1. b)
+2. c)
+3. c)
+4. c)
+        `;
+        const testPublicistickyStylUmenie = `
+Test: Publicistický štýl, Umenie a literatúra
+1. Ktorý z nasledujúcich útvarov patrí medzi analytické útvary publicistického štýlu?
+a) Správa
+b) Komentár
+c) Reportáž
+2. Ktorá funkcia umenia sa zameriava na poskytovanie príjemného zážitku a rozlišovanie hodnotného od braku?
+a) Výchovná funkcia
+b) Vzdelávacia funkcia
+c) Estetická funkcia
+3. Ktorý literárny druh je určený na inscenovanie hercami v divadle a jeho základ tvoria dialógy a monológy?
+a) Lyrika
+b) Epika
+c) Dráma
+4. Aký je hlavný cieľ publicistického štýlu?
+a) Len zabávať čitateľa
+b) Prinášať informácie, poúčať a ovplyvňovať verejnosť
+c) Vytvárať umelecké diela s hlbokou filozofickou myšlienkou
+Správne odpovede:
+1. b)
+2. c)
+3. c)
+4. b)
+        `;
+        const testSlohovePostupyStur = `
+Test: Slohové postupy, útvary a Ľudovít Štúr
+1. Ktorý slohový postup zachytáva udalosti (príbeh) chronologicky alebo retrospektívne?
+a) Opisný
+b) Výkladový
+c) Rozprávací (naratívny)
+2. V ktorom roku uzákonil Ľudovít Štúr spolu s Hurbanom a Hodžom spisovnú slovenčinu na základe stredoslovenského nárečia?
+a) 1787
+b) 1843
+c) 1852
+3. Aký názov niesli noviny, ktoré vydával Ľudovít Štúr a mali literárnu prílohu Orol tatranský?
+a) Slovenskje pohladi
+b) Slovenskje národňje novini
+c) Národňje zpievanki
+4. Ktorý slohový útvar je charakteristický pre informačný slohový postup a odpovedá na otázky Čo, kde, kedy? sa stalo?
+a) Úvaha
+b) Správa
+c) Opis pracovnej činnosti
+Správne odpovede:
+1. c)
+2. b)
+3. b)
+4. b)
+        `;
+        const testAdministrativnyStylBottoChalupka = `
+Test: Administratívny štýl, Botto a Chalupka
+1. Ktorý z nasledujúcich znakov NIE JE typický pre administratívny štýl?
+a) Vecnosť a presnosť
+b) Používanie citovo zafarbených slov
+c) Schematickosť a štandardizované frázy
+2. Ktorý štúrovský básnik je autorom hrdinskej epickej básne "Mor ho!"?
+a) Ján Botto
+b) Andrej Sládkovič
+c) Samo Chalupka
+3. Balada "Žltá ľalia" od Jána Bottu symbolizuje žiarlivosť. Aký trest postihne Evu za nedodržanie sľubu vernosti?
+a) Vyhnanstvo z dediny
+b) Mŕtvy Adam si ju vezme so sebou
+c) Strata všetkého majetku
+4. Aký typ hrdinu predstavujú slovanskí poslovia v básni "Mor ho!"?
+a) Individuálny hrdina s osobnými problémami
+b) Zbabelý hrdina utekajúci pred bojom
+c) Kolektívny hrdina, milujúci vlasť a slobodu
+Správne odpovede:
+1. b)
+2. c)
+3. b)
+4. c)
+        `;
+        const testOpisSladkovic = `
+Test: Opis a Andrej Sládkovič
+1. Aký typ opisu sa zameriava na zachytenie objektu v pohybe alebo následnosť činností pri výrobe?
+a) Statický opis
+b) Dynamický opis
+c) Jednoduchý opis
+2. Ktorá z básnických skladieb Andreja Sládkoviča je považovaná za najdlhšiu ľúbostnú báseň na svete a venuje sa láske k Márii Pišlovej?
+a) Detvan
+b) Marína
+c) Nehaňte ľud môj
+3. V diele "Detvan", do akého pluku vstupuje Martin pod podmienkou, že si môže nechať svoj kroj a fujaru?
+a) Cisársky pluk
+b) Čierny pluk kráľa Matiáša
+c) Jánošíkovská družina
+4. Aký je hlavný rozdiel medzi jednoduchým a odborným opisom?
+a) Jednoduchý opis používa viac umeleckých prostriedkov
+b) Odborný opis využíva odbornú terminológiu a má za cieľ poučiť
+c) Jednoduchý opis je vždy subjektívny, odborný vždy objektívny
+Správne odpovede:
+1. b)
+2. b)
+3. b)
+4. b)
+        `;
+        const testCharakteristikaRealizmusSvetovy = `
+Test: Charakteristika a Svetový realizmus
+1. Aký typ charakteristiky opisuje povahové a duševné vlastnosti človeka, jeho záujmy a schopnosti?
+a) Vonkajšia charakteristika
+b) Vnútorná charakteristika
+c) Priama charakteristika
+2. Ktorý filozofický smer je základom realizmu a považuje za skutočné len to, čo sa dá overiť rozumom a skúsenosťou?
+a) Idealizmus
+b) Sentimentalizmus
+c) Pozitivizmus
+3. Kto je autorom románu "Otec Goriot", ktorý zobrazuje tragický príbeh obetavej otcovskej lásky v spoločnosti ovládanej peniazmi?
+a) Charles Dickens
+b) Honoré de Balzac
+c) Lev Nikolajevič Tolstoj
+4. V románe "Zločin a trest" od F. M. Dostojevského, prečo študent Raskoľnikov zabije úžerníčku?
+a) Z pomsty za osobnú krivdu
+b) Z lúpežných pohnútok
+c) Verí, že tým pomôže jej obetiam a "zabije princíp"
+Správne odpovede:
+1. b)
+2. c)
+3. b)
+4. c)
+        `;
+        const testSlovZasobaHviezdoslavSladkovic = `
+Test: Slovná zásoba, Hviezdoslav a Sládkovič
+1. Ktorý typ slovníka vysvetľuje pôvod a vývin jednotlivých slov?
+a) Frazeologický slovník
+b) Terminologický slovník
+c) Etymologický slovník
+2. V diele "Hájnikova žena" od P. O. Hviezdoslava, kto zabije Artuša Villániho v sebaobrane?
+a) Michal Čajka
+b) Hanka Čajková
+c) Starý gróf Villáni
+3. Aký veršový systém používal Andrej Sládkovič vo svojich dielach ako "Detvan"?
+a) Časomerný verš
+b) Slabičný (sylabický) verš
+c) Voľný verš
+4. Čo je hlavným konfliktom v Hviezdoslavovej "Hájnikovej žene"?
+a) Konflikt medzi láskou a povinnosťou
+b) Rozpor medzi šľachtou a ľudom, ich morálnymi hodnotami
+c) Boj človeka s prírodou
+Správne odpovede:
+1. c)
+2. b)
+3. b)
+4. b)
+        `;
+        const testJazykoveStylyRealizmusSk = `
+Test: Jazykové štýly a Slovenský realizmus
+1. Ktorý jazykový štýl sa využíva v súkromnom, neformálnom, hovorenom styku a využíva aj nespisovné slová?
+a) Administratívny štýl
+b) Hovorový štýl
+c) Umelecký štýl
+2. Ktorý z uvedených autorov patrí k predstaviteľom slovenského realizmu a napísal dielo "Ťapákovci"?
+a) Martin Kukučín
+b) Božena Slančíková-Timrava
+c) Jozef Gregor-Tajovský
+3. Aký je hlavný znak náučného (odborného) štýlu?
+a) Subjektívnosť a emotívnosť
+b) Presnosť, objektívnosť a používanie odborných termínov
+c) Snaha o zaujímavosť a aktuálnosť za každú cenu
+4. V diele Martina Kukučína "Keď báčik z Chochoľova umrie", akú spoločenskú vrstvu autor kritizuje?
+a) Chudobný dedinský ľud
+b) Upadajúce zemianstvo
+c) Bohatých mestských obchodníkov
+Správne odpovede:
+1. b)
+2. b)
+3. b)
+4. b)
+        `;
+        const testUvahaHronsky = `
+Test: Úvaha, Výkladový slohový postup a J. C. Hronský
+1. Aký je hlavný rozdiel medzi úvahou a výkladom?
+a) Úvaha je vždy kratšia ako výklad.
+b) Úvaha vyjadruje subjektívny názor autora, kým výklad sa snaží o objektívnosť a vysvetlenie faktov.
+c) Výklad používa umelecké prostriedky, úvaha len odborné termíny.
+2. Ktorý logický postup vo výkladovom slohovom postupe ide od konkrétneho k všeobecnému, od známeho k neznámemu?
+a) Deduktívny postup
+b) Induktívny postup
+c) Analytický postup
+3. Ktorý román Jozefa Cígera Hronského zachytáva utrpenie jednoduchého dedinského človeka menom Jozef Mak, ktorý čelí ranám osudu?
+a) Pisár Gráč
+b) Svet na trasovisku
+c) Jozef Mak
+4. Aký literárny smer charakterizuje román "Jozef Mak" prvkami ako zobrazenie utrpenia a osudovosti?
+a) Romantizmus
+b) Expresionizmus a fatalizmus
+c) Klasicizmus
+Správne odpovede:
+1. b)
+2. b)
+3. c)
+4. b)
+        `;
+        const testVetneClenyPrvaSvetova = `
+Test: Vetné členy a 1. svetová vojna v literatúre
+1. Ktorý z nasledujúcich vetných členov rozvíja podmet, predmet alebo príslovkové určenie vyjadrené podstatným menom a pýtame sa naň otázkami Aký? Ktorý? Čí?
+a) Predmet
+b) Prívlastok
+c) Prísudok
+2. V románe Mila Urbana "Živý bič", čo symbolizuje názov prvej časti "Stratené ruky"?
+a) Len fyzické zranenia vojakov z vojny
+b) Chýbajúce ruky na poliach a zároveň zranenia z vojny
+c) Strata nádeje a viery dedinčanov
+3. Ktorá postava v novele "Hrdinovia" od B. S. Timravy predstavuje falošné hrdinstvo a vlastenectvo, zatiaľ čo sa sama vyhýba odvodu?
+a) Podnotár Štefan Širický
+b) Notár Laci Baláň
+c) Ilčíčka
+4. Akým vetným členom je slovo "ráno" vo vete "Cestuje ráno."?
+a) Príslovkové určenie miesta
+b) Príslovkové určenie času
+c) Príslovkové určenie spôsobu
+Správne odpovede:
+1. b)
+2. b)
+3. b)
+4. b)
+        `;
+        const testSlovesaLyrizovanaProza = `
+Test: Slovesá a Lyrizovaná próza
+1. Ktorá gramatická kategória slovesa vyjadruje, či je dej ukončený alebo neukončený?
+a) Čas
+b) Spôsob
+c) Vid
+2. Ktorý z autorov patrí k predstaviteľom prózy naturizmu a napísal novelu "Tri gaštanové kone"?
+a) Dobroslav Chrobák
+b) Margita Figuli
+c) Ľudo Ondrejov
+3. Aký typ slovesného tvaru je "robiť"?
+a) Činné príčastie prítomné
+b) Neurčitok
+c) Prechodník
+4. V novele Dobroslava Chrobáka "Drak sa vracia", kto je tajomná postava Draka?
+a) Skutočný drak s nadprirodzenými schopnosťami
+b) Martin Lepiš Madlušovie, hrnčiar opradený záhadami
+c) Zbojník, ktorý terorizuje dedinu
+Správne odpovede:
+1. c)
+2. b)
+3. b)
+4. b)
+        `;
+        const testDiakritikaInterpunkciaDramaMedzivojnova = `
+Test: Diakritika, Interpunkcia a Medzivojnová dráma
+1. Ktoré z nasledujúcich znamienok patrí medzi diakritické (rozlišovacie) znamienka?
+a) Bodka (.)
+b) Mäkčeň (ˇ)
+c) Otáznik (?)
+2. Ktorý dramatik je autorom tragédie "Bačova žena", kde sa rieši konflikt ženy medzi dvoma mužmi?
+a) Július Barč-Ivan
+b) Ivan Stodola
+c) Peter Zvon
+3. Na čo sa používa spojovník (-), na rozdiel od pomlčky (–)?
+a) Na oddelenie viet a vsuviek
+b) Na vyjadrenie zlučovacieho vzťahu v zložených slovách bez medzier (napr. Gregor-Tajovský)
+c) Na označenie nedokončenej výpovede
+4. V hre Ivana Stodolu "Jožko Púčik a jeho kariéra", čo autor satirizuje?
+a) Byrokraciu a falošne chápaný humanizmus
+b) Lásku k peniazom a majetku
+c) Politické intrigy v malom meste
+Správne odpovede:
+1. b)
+2. b)
+3. b)
+4. a)
+        `;
+        const testZvukovaStrankaSvetovaPo1945 = `
+Test: Zvuková stránka jazyka a Svetová literatúra po 1945 (1)
+1. Ktorá jazyková disciplína skúma a opisuje tvorenie zvukov reči artikulačnými orgánmi?
+a) Fonológia
+b) Ortoepia
+c) Fonetika
+2. Ktorý literárny smer, populárny po 2. svetovej vojne, sa zaoberal existenciou človeka v hraničných situáciách a pocitmi úzkosti?
+a) Neorealizmus
+b) Existencializmus
+c) Magický realizmus
+3. Čo je to spodobovanie spoluhlások (znelostná asimilácia)?
+a) Predlžovanie samohlások vo vete
+b) Prispôsobenie výslovnosti dvoch susedných alebo blízkych hlások podľa znelosti
+c) Zmena významu slova pridaním predpony
+4. Kto je autorom románu "Kto chytá v žite", ktorý zobrazuje pocity nespokojnej povojnovej generácie?
+a) Albert Camus
+b) Jerome David Salinger
+c) Gabriel Garcia Márquez
+Správne odpovede:
+1. c)
+2. b)
+3. b)
+4. b)
+        `;
+        const testRecnickyStylVojnaNeorealizmusSocialReal = `
+Test: Rečnícky štýl a Svetová literatúra (vojna, neorealizmus, soc. realizmus)
+1. Ktorý znak NIE JE typický pre rečnícky štýl?
+a) Ústnosť a verejnosť
+b) Snaha o maximálnu objektivitu a vedeckú presnosť
+c) Používanie oslovení, rečníckych otázok a mimojazykových prostriedkov
+2. Ktorý literárny smer, typický pre povojnové Taliansko, zobrazoval jednoduchých ľudí z vidieka a chudobných štvrtí?
+a) Socialistický realizmus
+b) Existencializmus
+c) Neorealizmus
+3. Kto je autorom románu "Doktor Živago", ktorý kriticky zobrazuje udalosti v Rusku počas revolúcií a občianskej vojny?
+a) Michail Šolochov
+b) Alexander Solženicyn
+c) Boris Pasternak
+4. Aký je hlavný cieľ agitačných rečníckych prejavov?
+a) Informovať a vzdelávať
+b) Presviedčať, agitovať a ovplyvňovať
+c) Zabávať a vytvárať príjemnú atmosféru
+Správne odpovede:
+1. b)
+2. c)
+3. c)
+4. b)
+        `;
+        const testDiskusnyPrispevokSlovPoeziaPo1945 = `
+Test: Diskusný príspevok a Slovenská poézia po 1945
+1. Čo by malo byť v úvode diskusného príspevku?
+a) Podrobné riešenie problému
+b) Oslovenie prítomných a nadviazanie na predchádzajúcu diskusiu/prednášku
+c) Len poďakovanie za slovo
+2. Ktorý slovenský básnik, predstaviteľ tzv. návratovej poézie, napísal zbierku "Moja rodná"?
+a) Milan Rúfus
+b) Miroslav Válek
+c) Ján Kostra
+3. Aká je jedna z fáz tvorenia rečníckeho prejavu, pri ktorej si rečník pripravuje a organizuje obsah?
+a) Len prednes
+b) Výber témy a usporiadanie témy (kompozícia)
+c) Len zapamätanie si textu
+4. V básni "Jablko" od Miroslava Válka, čo symbolizuje padajúce a nezrelé jablko?
+a) Radosť a šťastie v láske
+b) Rozpadajúci sa a nezrelý vzťah medzi mužom a ženou
+c) Prírodnú katastrofu
+Správne odpovede:
+1. b)
+2. c)
+3. b)
+4. b)
+        `;
+        const testRecnickePrejavyJasikBednar = `
+Test: Rečnícke prejavy a Slovenská literatúra po 1945 (Jašík, Bednár)
+1. Ktorý typ rečníckeho prejavu je napríklad príhovor na stužkovej slávnosti?
+a) Agitačný prejav
+b) Náučný prejav
+c) Príležitostný slávnostný prejav
+2. Ktorý slovenský prozaik napísal román "Námestie svätej Alžbety" o tragickej láske Igora a Evy počas riešenia židovskej otázky?
+a) Alfonz Bednár
+b) Rudolf Jašík
+c) Dominik Tatarka
+3. V ktorej etape vývoja slovenskej literatúry po roku 1945 dominoval socialistický realizmus a schématizmus?
+a) 1945 – 1948
+b) 1948 – 1956 (tzv. 50. roky)
+c) 1956 – 1969 (tzv. 60. roky)
+4. V novele Alfonza Bednára "Kolíska", aký je hlavný morálny odkaz diela?
+a) Človek by sa mal vždy prispôsobiť moci, aby prežil.
+b) Vojna ospravedlňuje akékoľvek konanie.
+c) Človek sa má za každých okolností zachovať čestne a podľa svojho svedomia.
+Správne odpovede:
+1. c)
+2. b)
+3. b)
+4. c)
+        `;
+        const testRozpravaciSlohTotalita = `
+Test: Rozprávací slohový postup a Literatúra proti totalite
+1. Ktorý z nasledujúcich prvkov NIE JE typický pre rozprávací slohový postup?
+a) Zachytávanie udalostí v časovej postupnosti (chronologicky alebo retrospektívne)
+b) Prevaha podstatných mien a odborných termínov
+c) Používanie slovies, priamej reči a stupňovanie deja
+2. Ktorý slovenský autor napísal román "Ako chutí moc", kritizujúci deformáciu človeka vplyvom totalitnej moci?
+a) Dominik Tatarka
+b) Ladislav Mňačko
+c) Peter Jaroš
+3. Čo znamená pojem "in medias res" v kompozícii rozprávacieho útvaru?
+a) Postupný úvod s opisom prostredia a postáv
+b) Vpadnutie priamo do deja, bez úvodnej expozície
+c) Pohľad späť do minulosti na začiatku príbehu
+4. V románe Dominika Tatarku "Démon súhlasu", čo predstavuje hlavný hrdina Bartolomej Boleráz?
+a) Odvážneho bojovníka proti totalitnému režimu
+b) Človeka, ktorý sa zo strachu prispôsobuje pokrytectvu režimu
+c) Spokojného občana veriaceho v ideály socializmu
+Správne odpovede:
+1. b)
+2. b)
+3. b)
+4. b)
+        `;
+        const testSlovLitPo1945BallekMitana = `
+Test: Slovenská literatúra po 1945 (Ballek, Mitana) a Postmoderna
+1. Ktoré umelecké postupy sú typické pre postmodernu?
+a) Prísne dodržiavanie žánrových pravidiel a klasických foriem
+b) Prelínanie žánrov, paródia, irónia a využívanie citácií
+c) Dôraz na originalitu a odmietanie akýchkoľvek starších vzorov
+2. Ktorý slovenský autor je známy svojimi dielami z prostredia južného Slovenska, ako napríklad román "Pomocník"?
+a) Dušan Mitana
+b) Peter Jaroš
+c) Ladislav Ballek
+3. V románe Ladislava Balleka "Pomocník", aký vplyv má pomocník Volent Lančarič na rodinu mäsiara Riečana?
+a) Pomáha im udržať si morálne hodnoty a čestnosť.
+b) Jeho vplyvom rodina zbohatne, ale mravne a citovo upadá.
+c) Učí ich novým mäsiarskym technikám a pomáha im prosperovať bez negatívnych následkov.
+4. V poviedke Dušana Mitanu "Nočné správy", aký pocit dominuje u hlavného hrdinu?
+a) Radosť a spokojnosť so životom
+b) Istota a dôvera v spoločenský systém
+c) Strach, paranoja a pocit ohrozenia vonkajšou mocou
+Správne odpovede:
+1. b)
+2. c)
+3. b)
+4. c)
+        `;
+        const testInformacnySlohDramaPo1945 = `
+Test: Informačný slohový postup a Slovenská dráma po 1945
+1. Ktorý z uvedených útvarov je typickým príkladom informačného slohového postupu?
+a) Úvaha
+b) Správa
+c) Rozprávka
+2. Ktorí dvaja dramatici sú známi svojím intelektuálnym kabaretným divadlom, ktoré využívalo humor, satiru a prvky absurdity?
+a) Ján Solovič a Osvald Záhradník
+b) Ivan Stodola a Július Barč-Ivan
+c) Milan Lasica a Július Satinský
+3. V hre Ivana Bukovčana "Kým kohút nezaspieva", prečo sú rukojemníci zadržaní?
+a) Za krádež v miestnom obchode
+b) Za údajnú vraždu nemeckého vojaka
+c) Za organizovanie protifašistického odboja
+4. Akú funkciu plní titulok a nadtitulok v správe (informačný slohový postup)?
+a) Len estetickú, aby text lepšie vyzeral
+b) Upútať pozornosť a stručne informovať o obsahu správy
+c) Skryť hlavnú myšlienku správy
+Správne odpovede:
+1. b)
+2. c)
+3. b)
+4. b)
+        `;
+        const testJazykRecProzaPo1945 = `
+Test: Jazyk, Reč a Slovenská próza po 1945
+1. Čo je hlavným rozdielom medzi jazykom a rečou?
+a) Jazyk je konkrétna realizácia reči.
+b) Jazyk je systém znakov a pravidiel, reč je jeho konkrétne použitie.
+c) Reč je vždy písomná, jazyk je vždy ústny.
+2. Ktorý slovenský autor napísal román-rieku "Červené víno", zobrazujúci osudy troch generácií vinohradníckej rodiny Habdžovcov?
+a) Rudolf Jašík
+b) František Hečko
+c) Dušan Dušek
+3. Aký typ románu je dielo, v ktorom autor zobrazuje svoj vlastný životopis?
+a) Biografický román
+b) Historický román
+c) Autobiografický román
+4. V poviedke Dušana Dušeka "Pes" z knihy "Kufor na sny", aký je hlavný motív úvah autora?
+a) Kritika zaobchádzania so zvieratami
+b) Ponímanie slova "blázon" a vzťah človeka so psom
+c) Opis krás slovenskej prírody
+Správne odpovede:
+1. b)
+2. b)
+3. c)
+4. b)
+        `;
+
+        const slovencinaTestContents = [
+            testSlovnaZasobaLiteratura, testFrazeologizmusStredovek, testSyntaxHumanizmus,
+            testSuvetiaBarok, testProzodiaKlasicizmus, testPodstatneMenaDrama,
+            testVyvinJazykaRomantizmusSvetovy, testKomunikaciaRomantizmusSk,
+            testPublicistickyStylUmenie, testSlohovePostupyStur,
+            testAdministrativnyStylBottoChalupka, testOpisSladkovic, testCharakteristikaRealizmusSvetovy,
+            testSlovZasobaHviezdoslavSladkovic, testJazykoveStylyRealizmusSk,
+            testUvahaHronsky, testVetneClenyPrvaSvetova,
+            testSlovesaLyrizovanaProza, testDiakritikaInterpunkciaDramaMedzivojnova,
+            testZvukovaStrankaSvetovaPo1945, testRecnickyStylVojnaNeorealizmusSocialReal,
+            testDiskusnyPrispevokSlovPoeziaPo1945, testRecnickePrejavyJasikBednar,
+            testRozpravaciSlohTotalita, testSlovLitPo1945BallekMitana,
+            testInformacnySlohDramaPo1945, testJazykRecProzaPo1945
+        ];
+
+
+        let structuredQuizData = [];
+        let currentTestObject = null; 
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedAnswer = null; 
+        let quizStartTime = 0; 
+        let quizDurationSeconds = 0; 
+        let currentDifficulty = 'easy'; 
+
+        let timerInterval = null;
+        let timeLeftInSeconds = 0;
+        let timerMinutesSetting = 10;
+        let noTimerMode = false;
+
+        let db, auth, addDoc, collection, query, orderBy, onSnapshot, serverTimestamp, where, Timestamp, limit, 
+            onAuthStateChanged, signInWithCustomToken, initialAuthToken, appId, GoogleAuthProvider, signInWithPopup; // Destructure Firebase services
+        let currentUserId = null;
+        let unsubscribeLeaderboard = null; 
+
+        const topicSelectionScreen = document.getElementById('topic-selection-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultsScreen = document.getElementById('results-screen');
+        const leaderboardScreen = document.getElementById('leaderboard-screen');
+        const sectionsContainer = document.getElementById('sections-container');
+        const quizTopicTitle = document.getElementById('quiz-topic-title');
+        const questionTextEl = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const hardModeAnswerInput = document.getElementById('hard-mode-answer-input');
+        const feedbackTextEl = document.getElementById('feedback-text');
+        const scoreTextEl = document.getElementById('score-text');
+        const questionCounterTextEl = document.getElementById('question-counter-text');
+        const submitAnswerButton = document.getElementById('submit-answer-button');
+        const finalScoreTextEl = document.getElementById('final-score-text');
+        const probableGradeTimeValueEl = document.getElementById('probable-grade-time-value'); 
+        const resultMessageTextEl = document.getElementById('result-message-text');
+        const quizDurationTextEl = document.getElementById('quiz-duration-text');
+        const quizDurationValueEl = document.getElementById('quiz-duration-value');
+        const restartQuizButton = document.getElementById('restart-quiz-button');
+        const changeTopicButton = document.getElementById('change-topic-button');
+        const backToTopicsButton = document.getElementById('back-to-topics');
+        const timerMinutesInput = document.getElementById('timer-minutes');
+        const noTimerButton = document.getElementById('no-timer-button');
+        const timerDisplayEl = document.getElementById('timer-display');
+        const timeLeftEl = document.getElementById('time-left');
+        const timerInfoEl = document.getElementById('timer-info');
+        const loginStatusButton = document.getElementById('login-status-button'); 
+        const authStatusMessageEl = document.getElementById('auth-status-message'); 
+        const showLeaderboardButton = document.getElementById('show-leaderboard-button');
+        const leaderboardLoadingEl = document.getElementById('leaderboard-loading');
+        const leaderboardTableBody = document.getElementById('leaderboard-body');
+        const backToTopicsFromLeaderboardButton = document.getElementById('back-to-topics-from-leaderboard');
+        const playerNameInput = document.getElementById('player-name');
+        const saveToLeaderboardButton = document.getElementById('save-to-leaderboard-button');
+        const saveStatusMessageEl = document.getElementById('save-status-message');
+        const difficultyEasyButton = document.getElementById('difficulty-easy');
+        const difficultyHardButton = document.getElementById('difficulty-hard');
+        
+        const leaderboardSectionFilter = document.getElementById('leaderboard-section-filter');
+        const leaderboardTestFilter = document.getElementById('leaderboard-test-filter');
+        const leaderboardColTestName = document.getElementById('leaderboard-col-test-name');
+        const leaderboardColSectionName = document.getElementById('leaderboard-col-section-name');
+
+        const averagePercentageFilteredEl = document.getElementById('average-percentage-filtered');
+        const averageGradeFilteredEl = document.getElementById('average-grade-filtered');
+        const leaderboardMessageEl = document.getElementById('leaderboard-message');
+
+        // --- Helper Functions ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function normalizeText(text) {
+            if (typeof text !== 'string') return '';
+            return text.toLowerCase().trim().replace(/\s+/g, ' ');
+        }
+
+
+        function initializeFirebaseServices() {
+            if (window.fb) {
+                db = window.fb.db; auth = window.fb.auth; addDoc = window.fb.addDoc; collection = window.fb.collection;
+                query = window.fb.query; orderBy = window.fb.orderBy; onSnapshot = window.fb.onSnapshot;
+                serverTimestamp = window.fb.serverTimestamp; where = window.fb.where; Timestamp = window.fb.Timestamp;
+                limit = window.fb.limit; 
+                onAuthStateChanged = window.fb.onAuthStateChanged; signInWithCustomToken = window.fb.signInWithCustomToken; 
+                initialAuthToken = window.fb.initialAuthToken; appId = window.fb.appId;
+                GoogleAuthProvider = window.fb.GoogleAuthProvider; signInWithPopup = window.fb.signInWithPopup;
+                console.log("Firebase services initialized from window.fb");
+                return true;
+            }
+            console.error("Firebase services (window.fb) not found.");
+            authStatusMessageEl.textContent = "Chyba: Firebase sa nepodarilo inicializovať.";
+            loginStatusButton.textContent = "Chyba prihlásenia";
+            return false;
+        }
+        
+        async function authenticateUser() {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUserId = user.uid;
+                    loginStatusButton.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg> Prihlásený: ${user.displayName ? user.displayName.split(' ')[0] : user.email ? user.email.split('@')[0] : user.uid.substring(0,6)}`;
+                    loginStatusButton.classList.replace('bg-green-600','bg-sky-600');
+                    loginStatusButton.classList.replace('hover:bg-green-700','hover:bg-sky-700');
+                    authStatusMessageEl.textContent = `Vitaj späť!`;
+                    loadLastPlayerName();
+                } else {
+                    currentUserId = null;
+                    loginStatusButton.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg> Prihlásiť sa`;
+                    loginStatusButton.classList.replace('bg-sky-600','bg-green-600');
+                    loginStatusButton.classList.replace('hover:bg-sky-700','hover:bg-green-700');
+                    loginStatusButton.disabled = false;
+                    
+                    if (initialAuthToken) {
+                        authStatusMessageEl.textContent = "Pokus o prihlásenie tokenom...";
+                        try {
+                            await signInWithCustomToken(auth, initialAuthToken);
+                        } catch (error) {
+                            console.error("Initial sign in with custom token failed:", error);
+                            authStatusMessageEl.textContent = "Automatické prihlásenie tokenom zlyhalo.";
+                        }
+                    } else {
+                        authStatusMessageEl.textContent = "Nie ste prihlásený. Pre ukladanie do rebríčka sa prihláste.";
+                    }
+                }
+            });
+        }
+        
+        loginStatusButton.onclick = async () => {
+            if (!auth.currentUser) {
+                authStatusMessageEl.textContent = "Vyberte spôsob prihlásenia (Google je odporúčaný). Ostatné budú pridané neskôr.";
+                const provider = new GoogleAuthProvider();
+                try {
+                    await signInWithPopup(auth, provider);
+                    authStatusMessageEl.textContent = "Prihlásenie cez Google úspešné!";
+                } catch (error) {
+                    console.error("Error signing in with Google:", error);
+                    authStatusMessageEl.textContent = `Chyba prihlásenia cez Google: ${error.message}`;
+                }
+            } else {
+                authStatusMessageEl.textContent = `Už ste prihlásený ako ${auth.currentUser.displayName || auth.currentUser.email || auth.currentUser.uid.substring(0,6)}.`;
+            }
+        };
+
+
+        function parseSingleTest(docContent) {
+            const lines = docContent.split('\n').map(line => line.trim()).filter(line => line);
+            let topic = "";
+            const questions = [];
+            let currentQ = null;
+            let questionNum = 0;
+            const topicLine = lines.find(line => line.startsWith("Test:"));
+            if (topicLine) topic = topicLine.replace("Test:", "").trim();
+            let correctAnswersSectionStartIndex = -1;
+            for (let i = lines.length - 1; i >= 0; i--) if (lines[i].toLowerCase().startsWith("správne odpovede")) { correctAnswersSectionStartIndex = i; break; }
+            const correctAnswersMap = {};
+            if (correctAnswersSectionStartIndex !== -1) {
+                for (let i = correctAnswersSectionStartIndex + 1; i < lines.length; i++) {
+                    const match = lines[i].match(/^(\d+)\s*\.\s*([a-z])\)?/i);
+                    if (match) correctAnswersMap[parseInt(match[1])] = match[2].toLowerCase();
+                }
+            }
+            const endParseLimit = correctAnswersSectionStartIndex !== -1 ? correctAnswersSectionStartIndex : lines.length;
+            for (let i = 0; i < endParseLimit; i++) {
+                const line = lines[i];
+                if (line.startsWith("Test:")) continue;
+                const qMatch = line.match(/^(\d+)\.\s+(.*)/);
+                if (qMatch) {
+                    if (currentQ && Object.keys(currentQ.options).length > 0) questions.push(currentQ);
+                    questionNum = parseInt(qMatch[1]);
+                    currentQ = { id: questionNum, question: qMatch[2].trim(), options: {}, correctLetter: correctAnswersMap[questionNum] || null, correctText: '' };
+                } else if (currentQ) {
+                    const optMatch = line.match(/^([a-zA-Z])\)\s+(.*)/i);
+                    if (optMatch) {
+                        const letter = optMatch[1].toLowerCase();
+                        const text = optMatch[2].trim();
+                        currentQ.options[letter] = text;
+                        if (currentQ.correctLetter === letter) currentQ.correctText = text;
+                    }
+                }
+            }
+            if (currentQ && Object.keys(currentQ.options).length > 0) questions.push(currentQ);
+            questions.forEach(q => { if (q.correctLetter && !q.correctText && q.options[q.correctLetter]) q.correctText = q.options[q.correctLetter]; });
+            const validQuestions = questions.filter(q => q.question && q.correctLetter && q.correctText && Object.keys(q.options).length >= 2);
+            if (topic && validQuestions.length > 0) return { topic, questions: validQuestions };
+            console.warn(`Failed to parse. Topic: ${topic}. ValidQs: ${validQuestions.length}`);
+            return null;
+        }
+
+        function structureAllTests() {
+            const parsedElektrotechnikaTests = elektrotechnikaTestContents.map((docString, index) => {
+                const parsedTest = parseSingleTest(docString);
+                if (parsedTest) parsedTest.sectionName = "Mechanika Elektrotechnika (testy od Hudecovej)";
+                return parsedTest;
+            }).filter(Boolean);
+
+            const parsedSlovencinaTests = slovencinaTestContents.map((docString, index) => {
+                const parsedTest = parseSingleTest(docString);
+                if (parsedTest) parsedTest.sectionName = "Slovenčina";
+                return parsedTest;
+            }).filter(Boolean);
+
+            structuredQuizData = [
+                { sectionName: "Mechanika Elektrotechnika (testy od Hudecovej)", tests: parsedElektrotechnikaTests },
+                { sectionName: "Slovenčina", tests: parsedSlovencinaTests }
+            ];
+            populateTestFilterDropdown(); 
+        }
+        
+        function populateTestFilterDropdown() {
+            leaderboardTestFilter.innerHTML = '<option value="All">Všetky testy (v sekcii/globálne)</option>'; 
+            const allTests = [];
+            structuredQuizData.forEach(section => {
+                section.tests.forEach(test => {
+                    if (!allTests.find(t => t.topic === test.topic)) { 
+                        allTests.push({topic: test.topic, sectionName: section.sectionName});
+                    }
+                });
+            });
+            allTests.sort((a, b) => a.topic.localeCompare(b.topic, 'sk'));
+            allTests.forEach(test => {
+                const option = document.createElement('option');
+                option.value = test.topic; 
+                option.textContent = `${test.topic} (${test.sectionName.substring(0,3)}.)`; 
+                leaderboardTestFilter.appendChild(option);
+            });
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        function formatDuration(totalSeconds) {
+            if (isNaN(totalSeconds) || totalSeconds === null || totalSeconds === undefined) return 'N/A';
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes}m ${seconds.toString().padStart(2, '0')}s`;
+        }
+
+        function startTimer() {
+            quizStartTime = Date.now(); 
+            if (noTimerMode) {
+                timerDisplayEl.classList.add('hidden');
+                return;
+            }
+            timerDisplayEl.classList.remove('hidden');
+            timeLeftInSeconds = timerMinutesSetting * 60;
+            timeLeftEl.textContent = formatTime(timeLeftInSeconds);
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeftInSeconds--;
+                timeLeftEl.textContent = formatTime(timeLeftInSeconds);
+                if (timeLeftInSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    feedbackTextEl.textContent = 'Čas vypršal!';
+                    feedbackTextEl.className = 'mb-4 min-h-[30px] text-center text-lg font-semibold text-red-500';
+                    if (selectedAnswer !== null && submitAnswerButton.textContent === 'Potvrdiť Odpoveď') handleSubmitAnswer(true);
+                    setTimeout(showResults, selectedAnswer !== null ? 1500: 0);
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            quizDurationSeconds = Math.floor((Date.now() - quizStartTime) / 1000);
+        }
+
+        function showScreen(screenToShow) {
+            [topicSelectionScreen, quizScreen, resultsScreen, leaderboardScreen].forEach(s => s.classList.add('hidden'));
+            screenToShow.classList.remove('hidden');
+        }
+
+        function loadSectionsAndTopics() {
+            sectionsContainer.innerHTML = ''; 
+            structuredQuizData.forEach((section) => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'section-block mb-6';
+                const sectionTitleEl = document.createElement('h2');
+                sectionTitleEl.className = 'text-2xl font-semibold text-sky-300 mb-4 section-title';
+                sectionTitleEl.textContent = section.sectionName;
+                sectionDiv.appendChild(sectionTitleEl);
+                const testsGridDiv = document.createElement('div');
+                testsGridDiv.className = 'grid grid-cols-1 sm:grid-cols-2 gap-4';
+                if (section.tests.length > 0) {
+                    section.tests.forEach((test) => {
+                        const button = document.createElement('button');
+                        button.className = 'bg-slate-700 hover:bg-slate-600 text-slate-100 font-semibold py-4 px-6 rounded-lg shadow-md transition-all duration-200 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-opacity-50';
+                        button.textContent = test.topic;
+                        button.onclick = () => startQuiz(test); 
+                        testsGridDiv.appendChild(button);
+                    });
+                } else {
+                    const noTestsText = document.createElement('p');
+                    noTestsText.className = 'text-slate-400 italic col-span-full';
+                    noTestsText.textContent = 'V tejto sekcii zatiaľ nie sú žiadne testy.';
+                    testsGridDiv.appendChild(noTestsText);
+                }
+                sectionDiv.appendChild(testsGridDiv);
+                sectionsContainer.appendChild(sectionDiv);
+            });
+            showScreen(topicSelectionScreen);
+        }
+
+        function startQuiz(testObject) { 
+            currentTestObject = JSON.parse(JSON.stringify(testObject)); 
+            
+            if (currentDifficulty === 'easy') {
+                shuffleArray(currentTestObject.questions); 
+            }
+            currentQuestionIndex = 0;
+            score = 0;
+            selectedAnswer = null;
+            quizTopicTitle.textContent = currentTestObject.topic;
+            if (!noTimerMode) {
+                const minutes = parseInt(timerMinutesInput.value);
+                timerMinutesSetting = (!isNaN(minutes) && minutes > 0) ? minutes : 10;
+                timerMinutesInput.value = timerMinutesSetting.toString();
+            }
+            showScreen(quizScreen);
+            startTimer(); 
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            if (!currentTestObject || currentQuestionIndex >= currentTestObject.questions.length) {
+                showResults();
+                return;
+            }
+            const q = currentTestObject.questions[currentQuestionIndex];
+            questionTextEl.textContent = q.question;
+            optionsContainer.innerHTML = '';
+            optionsContainer.classList.remove('disabled-options');
+            hardModeAnswerInput.classList.add('hidden'); 
+            hardModeAnswerInput.value = '';
+            hardModeAnswerInput.classList.remove('border-green-500', 'border-red-500', 'border-2');
+
+
+            if (currentDifficulty === 'easy') {
+                let optionLetters = ['A', 'B', 'C', 'D', 'E', 'F']; 
+                const optionsArray = [];
+                for (const key in q.options) {
+                    optionsArray.push({ originalKey: key, text: q.options[key] });
+                }
+                shuffleArray(optionsArray); 
+
+                optionsArray.forEach((opt, index) => {
+                    const button = document.createElement('button');
+                    button.className = 'option-button block w-full text-left bg-slate-600 hover:bg-slate-500 text-slate-100 py-3 px-5 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500';
+                    button.textContent = `${optionLetters[index]}) ${opt.text}`;
+                    button.dataset.answer = opt.originalKey; 
+                    button.onclick = () => selectAnswer(opt.originalKey, button);
+                    optionsContainer.appendChild(button);
+                });
+                submitAnswerButton.disabled = true; 
+            } else { 
+                let optionLabelIndex = 0;
+                const optionLabels = ['A', 'B', 'C', 'D', 'E', 'F'];
+                for (const key in q.options) {
+                    const p = document.createElement('p');
+                    p.className = 'text-slate-300 py-2 px-3 bg-slate-600 rounded-md';
+                    p.textContent = `${optionLabels[optionLabelIndex++]}) ${q.options[key]}`;
+                    optionsContainer.appendChild(p);
+                }
+                hardModeAnswerInput.classList.remove('hidden');
+                hardModeAnswerInput.focus();
+                submitAnswerButton.disabled = false; 
+            }
+
+            feedbackTextEl.textContent = '';
+            feedbackTextEl.className = 'mb-4 min-h-[30px] text-center text-lg';
+            scoreTextEl.textContent = `Skóre: ${score}/${currentTestObject.questions.length}`;
+            questionCounterTextEl.textContent = `Otázka: ${currentQuestionIndex + 1}/${currentTestObject.questions.length}`;
+            submitAnswerButton.textContent = 'Potvrdiť Odpoveď';
+            submitAnswerButton.classList.replace('bg-green-600', 'bg-blue-600');
+            submitAnswerButton.classList.replace('hover:bg-green-700', 'hover:bg-blue-700');
+            selectedAnswer = null;
+        }
+
+        function selectAnswer(answerKey, buttonEl) { 
+            if (currentDifficulty !== 'easy' || optionsContainer.classList.contains('disabled-options')) return;
+            selectedAnswer = answerKey;
+            Array.from(optionsContainer.children).forEach(btn => btn.classList.remove('selected'));
+            buttonEl.classList.add('selected');
+            submitAnswerButton.disabled = false;
+        }
+
+        function handleSubmitAnswer(timeExpiredAfterSelection = false) {
+            if (!currentTestObject) return;
+            const q = currentTestObject.questions[currentQuestionIndex];
+            let isCorrect = false;
+
+            if (currentDifficulty === 'easy') {
+                if (selectedAnswer === null && !timeExpiredAfterSelection) return;
+                isCorrect = selectedAnswer === q.correctLetter;
+                optionsContainer.classList.add('disabled-options'); 
+                Array.from(optionsContainer.children).forEach(button => {
+                    button.disabled = true; 
+                    if (button.dataset.answer === q.correctLetter) button.classList.add('correct');
+                    if (button.dataset.answer === selectedAnswer && !isCorrect) button.classList.add('incorrect');
+                });
+            } else { 
+                const userAnswer = normalizeText(hardModeAnswerInput.value);
+                const correctAnswerText = normalizeText(q.correctText);
+                isCorrect = userAnswer === correctAnswerText;
+                hardModeAnswerInput.disabled = true;
+                 if (isCorrect) {
+                    hardModeAnswerInput.classList.remove('border-red-500');
+                    hardModeAnswerInput.classList.add('border-2', 'border-green-500');
+                } else {
+                    hardModeAnswerInput.classList.remove('border-green-500');
+                    hardModeAnswerInput.classList.add('border-2', 'border-red-500');
+                }
+            }
+            
+            if (isCorrect) {
+                score++;
+                feedbackTextEl.textContent = 'Správne!';
+                feedbackTextEl.className = 'mb-4 min-h-[30px] text-center text-lg font-semibold text-green-400';
+            } else {
+                feedbackTextEl.innerHTML = `Nesprávne. Správna odpoveď: <span class="font-bold">${currentDifficulty === 'easy' ? q.correctLetter.toUpperCase() + ') ' : ''}${q.correctText}</span>`;
+                feedbackTextEl.className = 'mb-4 min-h-[30px] text-center text-lg font-semibold text-red-400';
+            }
+            scoreTextEl.textContent = `Skóre: ${score}/${currentTestObject.questions.length}`;
+            if (!timeExpiredAfterSelection) {
+                submitAnswerButton.textContent = 'Ďalšia Otázka';
+                submitAnswerButton.classList.replace('bg-blue-600', 'bg-green-600');
+                submitAnswerButton.classList.replace('hover:bg-blue-700', 'hover:bg-green-700');
+            }
+            currentQuestionIndex++;
+            if (currentQuestionIndex >= currentTestObject.questions.length) {
+                 submitAnswerButton.textContent = 'Zobraziť Výsledky';
+                 stopTimer(); 
+            }
+        }
+        
+        submitAnswerButton.onclick = () => {
+            if (timeLeftInSeconds <= 0 && !noTimerMode && submitAnswerButton.textContent === 'Potvrdiť Odpoveď') return; 
+            if (submitAnswerButton.textContent === 'Potvrdiť Odpoveď') handleSubmitAnswer();
+            else if (submitAnswerButton.textContent === 'Zobraziť Výsledky' || currentQuestionIndex >= currentTestObject.questions.length) showResults();
+            else {
+                if(currentDifficulty === 'hard') hardModeAnswerInput.disabled = false; 
+                displayQuestion();
+            }
+        };
+
+        function calculateGrade(percentage) { 
+            if (percentage >= 90) return "1 (Výborný)";
+            if (percentage >= 75) return "2 (Chválitebný)";
+            if (percentage >= 50) return "3 (Dobrý)";
+            if (percentage >= 30) return "4 (Dostatočný)";
+            return "5 (Nedostatočný)";
+        }
+
+        function calculateProbableGradeWithTime(currentScore, totalQuestions, durationSeconds) {
+            if (totalQuestions === 0) return calculateGrade(0); 
+            const basePercentage = (currentScore / totalQuestions) * 100;
+            let adjustedPercentage = basePercentage;
+            const timePerQuestion = durationSeconds / totalQuestions;
+            if (timePerQuestion < 45 && basePercentage >= 50) { 
+                adjustedPercentage = Math.min(100, basePercentage + 5); 
+            } else if (timePerQuestion > 90 && basePercentage < 90 && basePercentage >= 30) { 
+                adjustedPercentage = Math.max(0, basePercentage - 5); 
+            }
+            return calculateGrade(adjustedPercentage);
+        }
+
+        function showResults() {
+            stopTimer(); 
+            if (!currentTestObject) return; 
+            finalScoreTextEl.textContent = `Tvoje skóre: ${score} z ${currentTestObject.questions.length}`;
+            const probableGradeWithTime = calculateProbableGradeWithTime(score, currentTestObject.questions.length, quizDurationSeconds);
+            probableGradeTimeValueEl.textContent = probableGradeWithTime;
+            const percentage = currentTestObject.questions.length > 0 ? (score / currentTestObject.questions.length) * 100 : 0;
+            let message = "";
+            if (percentage === 100) message = "Perfektné! Všetko správne!";
+            else if (percentage >= 75) message = "Výborne! Skvelý výsledok!";
+            else if (percentage >= 50) message = "Dobre, ale je tu priestor na zlepšenie.";
+            else message = "Nevadí, skús to znova a určite to bude lepšie!";
+            if (timeLeftInSeconds <= 0 && !noTimerMode && currentQuestionIndex < currentTestObject.questions.length) message += " Čas vypršal!";
+            resultMessageTextEl.textContent = message;
+            quizDurationValueEl.textContent = formatDuration(quizDurationSeconds);
+            saveStatusMessageEl.textContent = ''; 
+            saveToLeaderboardButton.disabled = false;
+            showScreen(resultsScreen);
+        }
+        
+        async function saveScoreToLeaderboard() {
+            if (!db || !currentUserId) {
+                saveStatusMessageEl.textContent = "Chyba: Nie je možné uložiť. Skontrolujte prihlásenie.";
+                saveStatusMessageEl.className = "text-sm text-red-400 mt-2 min-h-[20px]";
+                return;
+            }
+            if (!currentTestObject) {
+                 saveStatusMessageEl.textContent = "Chyba: Chýbajú informácie o teste.";
+                 saveStatusMessageEl.className = "text-sm text-red-400 mt-2 min-h-[20px]";
+                 return;
+            }
+            let playerName = playerNameInput.value.trim() || `Anonym (${currentUserId.substring(0, 4)})`;
+            localStorage.setItem('quizAppPlayerName', playerName);
+            const percentage = currentTestObject.questions.length > 0 ? (score / currentTestObject.questions.length) * 100 : 0;
+            
+            const leaderboardData = {
+                userId: currentUserId, playerName, testTopic: currentTestObject.topic,
+                sectionName: currentTestObject.sectionName, score, totalQuestions: currentTestObject.questions.length,
+                percentage: parseFloat(percentage.toFixed(2)), durationSeconds: quizDurationSeconds,
+                timestamp: serverTimestamp(),
+                difficulty: currentDifficulty 
+            };
+            saveToLeaderboardButton.disabled = true;
+            saveStatusMessageEl.textContent = "Ukladám...";
+            saveStatusMessageEl.className = "text-sm text-slate-400 mt-2 min-h-[20px]";
+            try {
+                const leaderboardCollectionPath = `/artifacts/${appId}/public/data/quiz_leaderboard_v3`; 
+                await addDoc(collection(db, leaderboardCollectionPath), leaderboardData);
+                saveStatusMessageEl.textContent = "Výsledok úspešne uložený!";
+                saveStatusMessageEl.className = "text-sm text-green-400 mt-2 min-h-[20px]";
+            } catch (error) {
+                console.error("Error saving score to Firestore: ", error);
+                saveStatusMessageEl.textContent = "Chyba pri ukladaní výsledku.";
+                saveStatusMessageEl.className = "text-sm text-red-400 mt-2 min-h-[20px]";
+                saveToLeaderboardButton.disabled = false;
+            }
+        }
+
+        function loadLastPlayerName() {
+            const lastPlayerName = localStorage.getItem('quizAppPlayerName');
+            if (lastPlayerName) playerNameInput.value = lastPlayerName;
+        }
+        
+        function displayLeaderboardData(entries, currentFilterTestName) {
+            leaderboardTableBody.innerHTML = ''; 
+            leaderboardLoadingEl.style.display = 'none';
+            leaderboardColTestName.style.display = currentFilterTestName === 'All' ? '' : 'none';
+            leaderboardColSectionName.style.display = (leaderboardSectionFilter.value === 'Global' && currentFilterTestName === 'All') ? '' : 'none';
+
+            if (entries.length === 0) {
+                leaderboardMessageEl.textContent = 'Zatiaľ žiadne výsledky v tejto kategórii.';
+                averagePercentageFilteredEl.textContent = '--%';
+                averageGradeFilteredEl.textContent = '--';
+                return;
+            }
+            leaderboardMessageEl.textContent = '';
+            let totalPercentageSum = 0;
+            entries.forEach((entry, index) => {
+                const row = leaderboardTableBody.insertRow();
+                row.insertCell().textContent = index + 1;
+                row.insertCell().textContent = entry.playerName;
+                if (currentFilterTestName === 'All') row.insertCell().textContent = entry.testTopic;
+                if (leaderboardSectionFilter.value === 'Global' && currentFilterTestName === 'All') row.insertCell().textContent = entry.sectionName;
+                row.insertCell().textContent = `${entry.score}/${entry.totalQuestions}`;
+                const percentage = entry.percentage !== undefined ? entry.percentage.toFixed(2) : 'N/A';
+                row.insertCell().textContent = `${percentage}%`;
+                row.insertCell().textContent = calculateGrade(entry.percentage); 
+                row.insertCell().textContent = formatDuration(entry.durationSeconds);
+                row.insertCell().textContent = entry.timestamp ? new Date(entry.timestamp.seconds * 1000).toLocaleString('sk-SK') : 'N/A';
+                totalPercentageSum += entry.percentage;
+            });
+            const averagePercentage = entries.length > 0 ? (totalPercentageSum / entries.length) : 0;
+            averagePercentageFilteredEl.textContent = `${averagePercentage.toFixed(2)}%`;
+            averageGradeFilteredEl.textContent = calculateGrade(averagePercentage);
+        }
+
+        async function loadLeaderboard() {
+            if (!db) {
+                leaderboardMessageEl.textContent = "Chyba: Nepodarilo sa načítať rebríček (DB).";
+                return;
+            }
+            leaderboardLoadingEl.style.display = 'block';
+            leaderboardTableBody.innerHTML = ''; 
+            leaderboardMessageEl.textContent = 'Načítavam rebríček...';
+
+            if (unsubscribeLeaderboard) unsubscribeLeaderboard();
+
+            const selectedSection = leaderboardSectionFilter.value;
+            const selectedTest = leaderboardTestFilter.value;
+            
+            const leaderboardCollectionPath = `/artifacts/${appId}/public/data/quiz_leaderboard_v3`;
+            let qConstraints = [orderBy("percentage", "desc"), orderBy("timestamp", "desc"), limit(50)];
+            
+            if (selectedTest !== "All") {
+                qConstraints.unshift(where("testTopic", "==", selectedTest));
+            } else if (selectedSection !== "Global") {
+                qConstraints.unshift(where("sectionName", "==", selectedSection));
+            }
+            
+            const q = query(collection(db, leaderboardCollectionPath), ...qConstraints);
+
+            unsubscribeLeaderboard = onSnapshot(q, (querySnapshot) => {
+                const entries = [];
+                querySnapshot.forEach((doc) => entries.push({ id: doc.id, ...doc.data() }));
+                displayLeaderboardData(entries, selectedTest);
+            }, (error) => {
+                console.error("Error fetching leaderboard: ", error);
+                leaderboardLoadingEl.style.display = 'none';
+                leaderboardMessageEl.textContent = "Chyba pri načítaní rebríčka.";
+            });
+        }
+
+        difficultyEasyButton.addEventListener('click', () => {
+            currentDifficulty = 'easy';
+            difficultyEasyButton.classList.add('active');
+            difficultyHardButton.classList.remove('active');
+        });
+
+        difficultyHardButton.addEventListener('click', () => {
+            currentDifficulty = 'hard';
+            difficultyHardButton.classList.add('active');
+            difficultyEasyButton.classList.remove('active');
+        });
+
+        showLeaderboardButton.onclick = () => {
+            showScreen(leaderboardScreen);
+            leaderboardSectionFilter.value = "Global"; 
+            leaderboardTestFilter.value = "All"; 
+            loadLeaderboard();
+        };
+        backToTopicsFromLeaderboardButton.onclick = () => {
+            if (unsubscribeLeaderboard) unsubscribeLeaderboard();
+            showScreen(topicSelectionScreen);
+        };
+        
+        leaderboardSectionFilter.addEventListener('change', loadLeaderboard);
+        leaderboardTestFilter.addEventListener('change', loadLeaderboard);
+
+        saveToLeaderboardButton.onclick = saveScoreToLeaderboard;
+        restartQuizButton.onclick = () => { if (currentTestObject) startQuiz(currentTestObject); };
+        changeTopicButton.onclick = () => showScreen(topicSelectionScreen);
+        backToTopicsButton.onclick = () => { stopTimer(); showScreen(topicSelectionScreen); };
+        noTimerButton.onclick = () => {
+            noTimerMode = !noTimerMode;
+            timerMinutesInput.disabled = noTimerMode;
+            timerMinutesInput.classList.toggle('opacity-50', noTimerMode);
+            noTimerButton.textContent = noTimerMode ? 'S časovačom' : 'Bez limitu';
+            noTimerButton.classList.toggle('bg-slate-500', !noTimerMode);
+            noTimerButton.classList.toggle('hover:bg-slate-400', !noTimerMode);
+            noTimerButton.classList.toggle('bg-sky-600', noTimerMode);
+            noTimerButton.classList.toggle('hover:bg-sky-700', noTimerMode);
+            timerInfoEl.textContent = noTimerMode ? "Časový limit je vypnutý." : "Zadajte počet minút alebo vyberte \"Bez limitu\".";
+        };
+        timerMinutesInput.addEventListener('input', () => {
+            if (noTimerMode) { noTimerMode = false; 
+                timerMinutesInput.disabled = false; timerMinutesInput.classList.remove('opacity-50');
+                noTimerButton.textContent = 'Bez limitu'; noTimerButton.classList.replace('bg-sky-600','bg-slate-500'); noTimerButton.classList.replace('hover:bg-sky-700','hover:bg-slate-400');
+                timerInfoEl.textContent = "Zadajte počet minút alebo vyberte \"Bez limitu\".";
+            }
+        });
+
+        function initApp() {
+            if (!initializeFirebaseServices()) {
+                console.warn("Firebase not fully available. Leaderboard will be disabled.");
+                showLeaderboardButton.disabled = true;
+                showLeaderboardButton.title = "Rebríček je nedostupný (chyba Firebase)";
+                showLeaderboardButton.classList.add('opacity-50', 'cursor-not-allowed');
+                loginStatusButton.textContent = "Prihlásenie zlyhalo";
+                loginStatusButton.disabled = true;
+
+            } else {
+                 authenticateUser(); 
+            }
+            console.log("Initializing Quiz App with Timer, Sections, and Leaderboard...");
+            structureAllTests(); 
+            if (structuredQuizData.length > 0 && 
+                (structuredQuizData.find(sec => sec.sectionName === "Mechanika Elektrotechnika (testy od Hudecovej)" && sec.tests.length > 0) ||
+                 structuredQuizData.find(sec => sec.sectionName === "Slovenčina" && sec.tests.length > 0) )
+            ) {
+                loadSectionsAndTopics();
+            } else {
+                document.getElementById('app-container').innerHTML = '<h1 class="text-2xl text-red-500 text-center">Chyba: Nepodarilo sa načítať žiadne testy.</h1>';
+                console.error("No quiz data loaded.");
+            }
+        }
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
