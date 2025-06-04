@@ -1888,7 +1888,15 @@ Správne odpovede:
         async function initFirebase() {
             try {
                 // @ts-ignore
-                const firebaseConfig = JSON.parse(__firebase_config);
+                const firebaseConfig = {
+  apiKey: "AIzaSyCmApNSHVbLk8yVijA4BWER4S6u2q42qdI",
+  authDomain: "dsa-quiz-b3212.firebaseapp.com",
+  projectId: "dsa-quiz-b3212",
+  storageBucket: "dsa-quiz-b3212.firebasestorage.app",
+  messagingSenderId: "90124709586",
+  appId: "1:90124709586:web:b732304990c12ebd62870b",
+  measurementId: "G-MF71K72X9T"
+};
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
