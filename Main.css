@@ -1,0 +1,66 @@
+.NavBar {
+    z-index: 100;
+    -webkit-text-fill-color: inherit;
+    background-color: #00000000;
+    background-clip: border-box;
+    position: fixed;
+    inset: 5px 0 auto;
+}
+
+.NavBar-div {
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+    gap: 0px;
+    padding: 0px;
+}
+
+.NavBar-Title {
+    font-family: 'Homemade Apple', cursive;
+    font-size: 40px;
+    font-weight: 200;
+    font-style: normal;
+    color: rgb(0, 0, 0);
+    margin: 0px;
+    padding: 0px;
+    pointer-events: none;
+}
+
+/*-------------------------------------------------------*/
+.NavBar-Title-Button {
+    width: 80px;
+    height: 80px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.NavBar-Title-Button img {
+    width: 30%;
+    height: 30%;
+    object-fit: contain;
+}
+
+/*-------------------------------------------------------*/
+.NavBar-Button {
+    background-color: rgba(95, 158, 160, 0);
+    border: none;
+    font-size: 20px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-family: 'Nothing You Could Do', cursive;
+    font-weight: 100;
+}
+
+.NavBar-Button:hover {
+    font-weight: 800;    
+}
+
+/*-------------------------------------------------------*/

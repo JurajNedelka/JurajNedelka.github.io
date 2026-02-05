@@ -1,0 +1,38 @@
+.body1 {
+    background-color: #4f43b8;
+    margin: 0px;
+}
+
+.section1 {
+    background-color: #b84d4d;
+    margin: 0px;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.section2 {
+    background-color: #00ff37;
+    margin: 0px;
+}
+
+.photo {
+        width: 500px;
+        height: 600px;
+        background-color: black;
+        color: white;
+        top: 150px;
+        left: 150px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+    }
+
+.about {
+    background-color: blue;
+    width: 800px;
+    height: 600px;
+    position: absolute;
+    top: 150px;
+    right: 50px;
+}
