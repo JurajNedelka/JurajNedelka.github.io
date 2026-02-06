@@ -1,38 +1,179 @@
+/* First, define them */
+@font-face {
+    font-family: 'Gilroy-ExtraBold';
+    src: url('assets/fonts/Gilroy-ExtraBold.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Novecentosanswide-Medium';
+    src: url('assets/fonts/Novecentosanswide-Medium.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Roboto-Regular';
+    src: url('assets/fonts/Roboto-Regular.woff2') format('woff2');
+}
+
 .body1 {
-    background-color: #4f43b8;
+    background-color: #ffffff;
     margin: 0px;
 }
 
 .section1 {
-    background-color: #b84d4d;
+    background-color: #ffffff;
     margin: 0px;
     min-height: 100vh;
     overflow: hidden;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    padding: 2rem;
+    padding-top: 120px;
+    box-sizing: border-box;
 }
 
 .section2 {
-    background-color: #00ff37;
+    background-color: #001d2e;
     margin: 0px;
+    padding: 10px 200px 50px 200px;
 }
 
 .photo {
-        width: 500px;
-        height: 600px;
-        background-color: black;
-        color: white;
-        top: 150px;
-        left: 150px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        position: relative;
-    }
+    width: 100%;
+    max-width: 500px;
+    min-height: 400px;
+    height: auto;
+    aspect-ratio: 5/6;
+    background-color: black;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    flex: 1 1 300px;
+}
 
 .about {
-    background-color: blue;
-    width: 800px;
-    height: 600px;
-    position: absolute;
-    top: 150px;
-    right: 50px;
+    background-color: rgb(255, 255, 255);
+    width: 100%;
+    max-width: 800px;
+    min-height: 400px;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    box-sizing: border-box;
+    flex: 1 1 300px;
+}
+
+.about h1, .about h2 {
+    margin: 0.5rem 0;
+    text-align: center;
+}
+
+.name {
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
+}
+
+.job {
+    font-size: clamp(1.5rem, 4vw, 3rem);
+}
+
+@media (max-width: 768px) {
+    .section1 {
+        flex-direction: column;
+        padding: 1rem;
+        padding-top: 150px;
+    }
+    
+    .photo, .about {
+        max-width: 100%;
+        min-height: 300px;
+    }
+    
+    .about {
+        padding: 1.5rem;
+    }
+    
+    .name {
+        font-size: 1.2rem;
+    }
+    
+    .job {
+        font-size: 1.5rem;
+    }
+}
+
+.AboutMe-Title {
+    font-family: 'Novecentosanswide-Medium';
+    font-size: 55px;
+    color: rgb(0, 0, 0);
+}
+
+.AboutMe-Description {
+    font-family: 'Roboto-Regular';
+    font-weight: 100;
+    font-size: 20px;
+    color: rgb(0, 0, 0);
+    margin: 0px;
+    padding: 0px;
+    line-height: 35px;
+}
+
+.section4 {
+    background-color: royalblue;
+}
+.section4-title {
+    display: flex;
+    justify-content: center;
+    background-color: rgba(216, 191, 216, 0);
+    padding: 0px 0px 0px 0px;
+}
+
+.section4-softwares {
+    background-color: rgba(0, 0, 0, 0);
+    padding: 10px 0px 50px 0px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 70px;
+}
+
+.section4-softwares-cool_effect:hover {
+    transform: scale(1.05);
+}
+
+.section4-small_typo {
+    display: flex;
+    justify-content: center;
+    padding: 0px 0px 10px 0px;
+}
+
+.section3 {
+    background-color: rgb(33, 45, 83);
+}
+
+.section5 {
+    background-color: rgb(255, 0, 0);
+}
+
+
+.card1 {
+    background-color: rgba(0, 255, 255, 0.178);
+    display: flex;       /* Turns on the split layout */
+    align-items: center; /* Centers items vertically (top to bottom) */
+    justify-content: space-around; /* Pushes them to the far edges */
+    gap: 20px;           /* Adds a gap between the two sides */
+    padding: 100px;
+}
+
+.FilterBar {
+    background-color: rgb(73, 51, 35);
+    padding: 30px 100px 30px 100px;
+    gap: 20px;
 }
