@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <link rel="stylesheet" href="Main.css">
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rift Runners</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: black;
+            overflow: hidden;
+        }
+        .gif-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            user-select: none;
+            padding-top: 80px;
+            box-sizing: border-box;
+        }
+        .gif-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        @media only screen and (max-width: 768px) {
+            .gif-container {
+                padding-top: 70px;
+            }
+        }
+
+        @media only screen and (max-width: 480px) {
+            .gif-container {
+                padding-top: 60px;
+            }
+            .gif-container img {
+                max-width: 95%;
+                max-height: 80vh;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!--Nav Bar-->
+    <div class="RR_NavBar">
+        <section class="RR_NavBar-div">
+            <a href="Bunny.html" class="RR_NavBar-Title-Button" aria-label="Previous page"><img src="assets/icons/angle-left-white.svg" alt="Previous"></a>
+            <a class="RR_NavBar-Title"><i>RIFT RUNNERS</i></a>
+            <a href="KidsZone.html" class="RR_NavBar-Title-Button" aria-label="Next page"><img src="assets/icons/angle-right-white.svg" alt="Next"></a>
+        </section>
+    </div>
+
+    <div class="gif-container">
+        <img src="assets/Juraj Nedelka/Portfolio/Rift Runners Teaser 1 Gif.gif" alt="Rift Runners Teaser 1 Gif">
+    </div>
+</body>
+</html>

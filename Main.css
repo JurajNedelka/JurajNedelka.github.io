@@ -1,4 +1,5 @@
-.NavBar {
+/*--------------------------Juraj Nedelka--------------------------*/
+.JR_NavBar {
     z-index: 100;
     -webkit-text-fill-color: inherit;
     background-color: #00000000;
@@ -7,7 +8,7 @@
     inset: 5px 0 auto;
 }
 
-.NavBar-div {
+.JR_NavBar-div {
     display: flex;
     justify-content: center;
     flex-direction: row;
@@ -15,7 +16,7 @@
     padding: 0px;
 }
 
-.NavBar-Title {
+.JR_NavBar-Title {
     font-family: 'Homemade Apple', cursive;
     font-size: 40px;
     font-weight: 200;
@@ -24,10 +25,10 @@
     margin: 0px;
     padding: 0px;
     pointer-events: none;
+    user-select: none;
 }
 
-/*-------------------------------------------------------*/
-.NavBar-Title-Button {
+.JR_NavBar-Title-Button {
     width: 80px;
     height: 80px;
     overflow: hidden;
@@ -42,7 +43,7 @@
     line-height: 1;
 }
 
-.NavBar-Title-Button img {
+.JR_NavBar-Title-Button img {
     width: 30%;
     height: 30%;
     object-fit: contain;
@@ -63,4 +64,189 @@
     font-weight: 800;    
 }
 
-/*-------------------------------------------------------*/
+/*--------------------------Juraj Nedelka--------------------------*/
+.KZ_NavBar {
+    z-index: 100;
+    -webkit-text-fill-color: inherit;
+    background-color: #00000000;
+    background-clip: border-box;
+    position: fixed;
+    inset: 5px 0 auto;
+}
+
+.KZ_NavBar-div {
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+    gap: 0px;
+    padding: 0px;
+}
+
+.KZ_NavBar-Title {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 35px;
+    font-weight: 400;
+    font-style: normal;
+    color: rgb(0, 0, 0);
+    margin: 0px;
+    padding: 24px 0px;
+    pointer-events: none;
+    user-select: none;
+}
+
+.KZ_NavBar-Title-Button {
+    width: 80px;
+    height: 80px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.KZ_NavBar-Title-Button img {
+    width: 30%;
+    height: 30%;
+    object-fit: contain;
+}
+
+/*--------------------------Rift Runners--------------------------*/
+.RR_NavBar {
+    z-index: 100;
+    -webkit-text-fill-color: inherit;
+    background-color: #00000000;
+    background-clip: border-box;
+    position: fixed;
+    inset: 5px 0 auto;
+}
+
+.RR_NavBar-div {
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+    gap: 0px;
+    padding: 0px;
+}
+
+.RR_NavBar-Title {
+    font-family: Robotic, sans-serif;
+    font-size: 40px;
+    font-weight: 700;
+    font-style: normal;
+    color: rgb(255, 255, 255);
+    margin: 0px;
+    padding: 20px 0px;
+    pointer-events: none;
+    user-select: none;
+}
+
+.RR_NavBar-Title-Button {
+    width: 80px;
+    height: 80px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.RR_NavBar-Title-Button img {
+    width: 30%;
+    height: 30%;
+    object-fit: contain;
+}
+
+/*========================== MOBILE RESPONSIVE NAVBARS ==========================*/
+
+@media (max-width: 768px) {
+    /* JR Navbar */
+    .JR_NavBar-Title {
+        font-size: 28px;
+    }
+    
+    .JR_NavBar-Title-Button {
+        width: 60px;
+        height: 60px;
+    }
+    
+    /* KZ Navbar */
+    .KZ_NavBar-Title {
+        font-size: 24px;
+        padding: 18px 0px;
+    }
+    
+    .KZ_NavBar-Title-Button {
+        width: 60px;
+        height: 60px;
+    }
+    
+    /* RR Navbar */
+    .RR_NavBar-Title {
+        font-size: 28px;
+        padding: 15px 0px;
+    }
+    
+    .RR_NavBar-Title-Button {
+        width: 60px;
+        height: 60px;
+    }
+}
+
+@media (max-width: 480px) {
+    /* JR Navbar */
+    .JR_NavBar-Title {
+        font-size: 22px;
+    }
+    
+    .JR_NavBar-Title-Button {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .JR_NavBar-Title-Button img {
+        width: 40%;
+        height: 40%;
+    }
+    
+    /* KZ Navbar */
+    .KZ_NavBar-Title {
+        font-size: 18px;
+        padding: 16px 0px;
+    }
+    
+    .KZ_NavBar-Title-Button {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .KZ_NavBar-Title-Button img {
+        width: 40%;
+        height: 40%;
+    }
+    
+    /* RR Navbar */
+    .RR_NavBar-Title {
+        font-size: 20px;
+        padding: 12px 0px;
+    }
+    
+    .RR_NavBar-Title-Button {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .RR_NavBar-Title-Button img {
+        width: 40%;
+        height: 40%;
+    }
+}

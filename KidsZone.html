@@ -1,115 +1,231 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <title>Kids Zone</title>  
+    <link rel="icon" type="image/x-icon" href="VSPIco.ico">
+    <title>Kids Zone</title>
+    <meta name="author" content="Juraj Nedeľka">
+    <meta name="description" content="Kids Zone - Coming Soon">
+    <meta name="keywords" content="Kids Zone, Juraj Nedeľka, Juraj Nedelka">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="author" content="Kids Zone">
-    <meta name="description" content="Horror series made by Juraj Nedeľka">
-    <meta name="keywords" content="Kids Zone, Juraj Nedeľka, Juraj Nedelka, Tech Friends, Redstone37Gamer">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="Main.css">
+
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: rgb(255, 255, 255);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Press Start 2P', cursive;
+            overflow: hidden;
+        }
+
+        .countdown-container {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .countdown {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .countdown-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .countdown-number {
+            font-size: 48px;
+            color: #000000;
+            min-width: 80px;
+            transition: all 0.05s ease;
+        }
+
+        .countdown-label {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 11px;
+            color: #b6b6b6;
+            margin-top: 10px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        .glitch-text {
+            animation: glitch 0.3s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        @media only screen and (max-width: 768px) {
+            body {
+                overflow-x: hidden;
+            }
+            
+            .countdown-number {
+                font-size: 36px;
+                min-width: 70px;
+            }
+            .countdown {
+                gap: 25px;
+            }
+            .countdown-title {
+                font-size: 20px;
+            }
+            .countdown-label {
+                font-size: 11px;
+            }
+            .countdown-container {
+                padding: 30px 20px;
+            }
+        }
+
+        @media only screen and (max-width: 600px) {
+            .countdown-number {
+                font-size: 32px;
+                min-width: 60px;
+            }
+            .countdown {
+                gap: 20px;
+            }
+            .countdown-title {
+                font-size: 18px;
+            }
+            .countdown-label {
+                font-size: 10px;
+            }
+            .countdown-container {
+                padding: 20px 15px;
+            }
+        }
+
+        @media only screen and (max-width: 480px) {
+            .countdown-number {
+                font-size: 24px;
+                min-width: 45px;
+            }
+            .countdown {
+                gap: 12px;
+            }
+            .countdown-title {
+                font-size: 14px;
+            }
+            .countdown-label {
+                font-size: 8px;
+            }
+            .countdown-container {
+                padding: 15px 10px;
+            }
+        }
+
+        @media only screen and (max-width: 360px) {
+            .countdown-number {
+                font-size: 20px;
+                min-width: 40px;
+            }
+            .countdown {
+                gap: 8px;
+            }
+            .countdown-label {
+                font-size: 7px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <body>
-        <form action="https://www.wattpad.com/story/300944882-detsk%C3%A1-z%C3%B3na-pomstitelia-n%C3%A1sledn%C3%ADkov-kapitola-1" method="get" target="_blank">
-           <button class="KidsZoneTeaser" type="submit"></button>
-        </form>
-     </body>
-    
-     <body>
-        <form action="https://gamejolt.com/games/TechFriends/806546" method="get" target="_blank">
-           <button class="TechFriendsButton01" type="submit"></button>
-        </form>
-     </body>
-    
-    <style>
-       body {
-        background-color: black;
-       }
 
-       @media only screen and (max-width: 460px) {
-      body {
-        .KidsZoneTeaser {
-          height: 150px;
-          width: 350px;
-          transform: translateX(-50%);
-          background-size: cover;
+    <!--Nav Bar-->
+    <div class="KZ_NavBar">
+        <section class="KZ_NavBar-div">
+            <a href="RiftRunners.html" class="KZ_NavBar-Title-Button" aria-label="Previous page"><img src="assets/icons/angle-left.svg" alt="Previous"></a>
+            <a class="KZ_NavBar-Title">KIDS ZONE</a>
+            <a href="Bunny.html" class="KZ_NavBar-Title-Button" aria-label="Next page"><img src="assets/icons/angle-right.svg" alt="Next"></a>
+        </section>
+    </div>
+
+    <div class="countdown-container">
+        <div class="countdown">
+            <div class="countdown-item">
+                <span class="countdown-number" id="days">00</span>
+                <span class="countdown-label">Days</span>
+            </div>
+            <div class="countdown-item">
+                <span class="countdown-number" id="hours">00</span>
+                <span class="countdown-label">Hours</span>
+            </div>
+            <div class="countdown-item">
+                <span class="countdown-number" id="minutes">00</span>
+                <span class="countdown-label">Minutes</span>
+            </div>
+            <div class="countdown-item">
+                <span class="countdown-number" id="seconds">00</span>
+                <span class="countdown-label">Seconds</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function getRandomNumber(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
         }
 
-        .TechFriendsButton01 {
-          transform: translateX(-115%);
-          height: 250px;
-          width: 150px;
-          top: 230px;
+        function formatNumber(num) {
+            return num.toString().padStart(2, '0');
         }
 
+        function updateCountdown() {
+            const days = document.getElementById('days');
+            const hours = document.getElementById('hours');
+            const minutes = document.getElementById('minutes');
+            const seconds = document.getElementById('seconds');
 
-      }}
+            days.textContent = formatNumber(getRandomNumber(0, 99));
+            hours.textContent = formatNumber(getRandomNumber(0, 99));
+            minutes.textContent = formatNumber(getRandomNumber(0, 99));
+            seconds.textContent = formatNumber(getRandomNumber(0, 99));
 
-      .KidsZoneTeaser {
-        background-image: url(KidsZoneWebpage/DetskaZonaTeaser.png);
-        height: 648px;
-        width: 1540px;
-        top: 50px;
-        transform: translateX(-50%);
-        position: absolute;
-        background-position: center;
-        background-size: contain;
-        cursor: pointer;
-        border-radius: 15px;
-        border: 0px;
-        transition: 0.3s;
-        cursor: pointer;
-        left: 50%;
-        border: 5px red;
-        border-radius: 15px;
-        border-style: solid;
-        background-color: black;
-      }
+            const numbers = document.querySelectorAll('.countdown-number');
+            numbers.forEach(num => {
+                if (Math.random() > 0.7) {
+                    num.style.color = getRandomColor();
+                }
+            });
+        }
 
-      .KidsZoneTeaser:hover {
-        margin-top: -5px;
-        border-radius: 5px;
+        function getRandomColor() {
+            const colors = ['black'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
 
-      }
-
-      .KidsZoneTeaser:active {
-        margin-top: 5px;
-      }
-
-      .TechFriendsButton01 {
-        width: 150px;
-        height: 250px;
-        transform: translateX(-510%);
-        position: absolute;
-        top: 730px;
-        cursor: pointer;
-        background-image: url(KidsZoneWebpage/TechFriendsProjectLogo.png);
-        background-repeat: no-repeat;
-        background-size: 150px 150px;
-        background-position: center;
-        background-color: black;
-        border: 3px blue;
-        border-radius: 15px;
-        border-style: solid;
-        transition: 0.3s;
-        left: 50%;
-        
-      }
-
-      .TechFriendsButton01:hover {
-        margin-top: -5px;
-        border-radius: 5px;
-      }
-
-      .TechFriendsButton01:active {
-        margin-top: 5px;
-      }
-
-    </style>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-
+        setInterval(updateCountdown, 50);
+        updateCountdown();
+    </script>
 </body>
-
 </html>
