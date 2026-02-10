@@ -1,7 +1,7 @@
 
  <html xmlns="jurajnedelka.github.io/">    
   <head>      
-    <meta http-equiv="refresh" content="0;URL='https://jurajnedelka.github.io/bunny'"/>    
+    <meta http-equiv="refresh" content="0;URL='https://jurajnedelka.github.io/Bunny'"/>    
   </head>    
   <body> 
     <p><a href="https://jurajnedelka.github.io/bunny">
